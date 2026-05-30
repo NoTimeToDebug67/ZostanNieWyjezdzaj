@@ -10,7 +10,7 @@ const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate()
 const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay()
 const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień']
 
-function CommunityPage() {
+function CommunityPage({ showAddEvent: propShowAddEvent, setShowAddEvent: propSetShowAddEvent }) {
   const { currentUser, joinEvent, leaveEvent, isSupabaseActive } = useAuth()
 
   const [tab, setTab] = useState('events')
@@ -20,7 +20,11 @@ function CommunityPage() {
   const [categoryFilter, setCategoryFilter] = useState('wszystkie')
   const [calMonth, setCalMonth] = useState(11)
   const [calYear, setCalYear] = useState(2026)
-  const [showAddEvent, setShowAddEvent] = useState(false)
+
+  const [localShowAddEvent, localSetShowAddEvent] = useState(false)
+  const showAddEvent = propShowAddEvent !== undefined ? propShowAddEvent : localShowAddEvent
+  const setShowAddEvent = propSetShowAddEvent !== undefined ? propSetShowAddEvent : localSetShowAddEvent
+
   const [newEvent, setNewEvent] = useState({ title: '', category: 'lokalne', location: '', date: '', time: '', description: '' })
 
   // Groups state

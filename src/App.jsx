@@ -13,6 +13,15 @@ function AppContent() {
   const { currentUser } = useAuth()
   const [activeTab, setActiveTab] = useState('start')
   const [fabOpen, setFabOpen] = useState(false)
+  const [showCommunityAddModal, setShowCommunityAddModal] = useState(false)
+
+  const handleFABAction = (actionId) => {
+    if (actionId === 'initiative') {
+      setActiveTab('community')
+      setShowCommunityAddModal(true)
+      setFabOpen(false)
+    }
+  }
 
   // Reset window scroll to top when changing tabs to prevent viewport offsets on non-scrollable pages like MapPage
   useEffect(() => {
@@ -30,7 +39,12 @@ function AppContent() {
       case 'map':
         return <MapPage />
       case 'community':
-        return <CommunityPage />
+        return (
+          <CommunityPage
+            showAddEvent={showCommunityAddModal}
+            setShowAddEvent={setShowCommunityAddModal}
+          />
+        )
       case 'wallet':
         return <WalletPage />
       case 'profile':
@@ -73,10 +87,21 @@ function AppContent() {
       </main>
 
       {/* FAB */}
-      <FAB isOpen={fabOpen} onToggle={() => setFabOpen(!fabOpen)} />
+      <FAB
+        isOpen={fabOpen}
+        onToggle={() => setFabOpen(!fabOpen)}
+        onAction={handleFABAction}
+      />
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={(tab) => { setActiveTab(tab); setFabOpen(false); }} />
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          setFabOpen(false);
+          setShowCommunityAddModal(false);
+        }}
+      />
     </div>
   )
 }

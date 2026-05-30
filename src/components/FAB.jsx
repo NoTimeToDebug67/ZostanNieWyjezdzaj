@@ -11,7 +11,7 @@ const fabActions = [
   },
   {
     id: 'initiative',
-    label: 'Inicjatywa',
+    label: "Nowe\nwydarzenie",
     icon: Lightbulb,
     color: 'bg-warm-orange',
     angle: -90,
@@ -25,7 +25,7 @@ const fabActions = [
   },
 ]
 
-function FAB({ isOpen, onToggle }) {
+function FAB({ isOpen, onToggle, onAction }) {
   const radius = 76
 
   return (
@@ -49,12 +49,15 @@ function FAB({ isOpen, onToggle }) {
             }}
           >
             <button
+              onClick={() => {
+                if (onAction) onAction(action.id)
+              }}
               className={`relative flex items-center justify-center w-11 h-11 rounded-full ${action.color} text-white shadow-lg hover:scale-110 active:scale-95 transition-transform`}
-              aria-label={action.label}
+              aria-label={action.label.replace('\n', ' ')}
             >
               <action.icon size={17} />
             </button>
-            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-800 bg-white/95 border border-card-border rounded-full px-2 py-0.5 shadow-glass whitespace-nowrap pointer-events-none transition-all duration-200">
+            <span className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-800 bg-white/95 border border-card-border rounded-xl px-2 py-0.5 shadow-glass text-center whitespace-pre-line pointer-events-none transition-all duration-200 w-[64px] leading-tight">
               {action.label}
             </span>
           </div>
