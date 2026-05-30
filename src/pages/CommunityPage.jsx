@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import mockEventsStatic from '../data/mockEvents'
@@ -748,7 +748,7 @@ function CommunityPage() {
                 eventScope === 'all' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
               }`}
             >
-              Wszystkie wydarzenia
+              Wszystkie
             </button>
             <button
               onClick={() => { setSelectedDay(null); setEventScope('joined'); }}
@@ -757,7 +757,7 @@ function CommunityPage() {
               }`}
             >
               <Check size={11} className={eventScope === 'joined' ? 'text-forest' : 'text-graphite-light'} />
-              Moje wydarzenia ({localJoinedIds.length})
+              Moje ({localJoinedIds.length})
             </button>
           </div>
 
@@ -801,43 +801,46 @@ function CommunityPage() {
             </div>
           </div>
 
-          {/* Category filter pills */}
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all border ${
-                  categoryFilter === cat
-                    ? 'bg-forest text-white border-forest'
-                    : 'bg-white text-graphite-light border-card-border hover:border-forest/30'
-                }`}
-              >
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </button>
-            ))}
+          {/* Category filter dropdown - ultra clean and space-saving */}
+          <div className="relative">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full bg-white text-graphite font-bold px-4 py-3 rounded-xl border border-card-border shadow-sm appearance-none outline-none focus:ring-2 focus:ring-forest/20 text-[11px] pr-10 hover:border-forest/30 transition-all cursor-pointer active:scale-[0.99]"
+            >
+              {categories.map(cat => (
+                <option key={cat} value={cat}>
+                  Kategoria: {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-forest flex items-center">
+              <ChevronDown size={14} className="stroke-[2.5]" />
+            </div>
           </div>
 
-          {/* Calendar Active Filter Badge */}
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-card-border p-3 shadow-sm">
-            <span className="text-[11px] font-bold text-graphite flex items-center gap-1.5">
-              <Calendar size={13} className="text-forest" />
-              {selectedDay !== null ? (
-                <>
-                  Dzień: <span className="text-forest underline decoration-2 decoration-mint/40">{selectedDay} {getPolishGenitiveMonth(calMonth)} {calYear}</span>
-                </>
-              ) : (
-                <>
-                  Miesiąc: <span className="text-forest underline decoration-2 decoration-mint/40">{monthNames[calMonth]} {calYear}</span>
-                </>
-              )}
+          {/* Calendar Active Filter Badge - optimized to prevent wrapping on mobile */}
+          <div className="flex items-center justify-between bg-white rounded-2xl border border-card-border p-2.5 shadow-sm text-[10px] w-full">
+            <span className="font-bold text-graphite flex items-center gap-1 flex-1 min-w-0">
+              <Calendar size={12} className="text-forest flex-shrink-0" />
+              <span className="truncate">
+                {selectedDay !== null ? (
+                  <>
+                    Dzień: <span className="text-forest">{selectedDay} {getPolishGenitiveMonth(calMonth)}</span>
+                  </>
+                ) : (
+                  <>
+                    Miesiąc: <span className="text-forest">{monthNames[calMonth]}</span>
+                  </>
+                )}
+              </span>
             </span>
             {selectedDay !== null && (
               <button
                 onClick={() => setSelectedDay(null)}
-                className="px-2 py-1 bg-forest/10 hover:bg-forest/15 text-forest rounded-lg text-[9px] font-bold transition-colors flex items-center gap-1"
+                className="px-2 py-1 bg-forest/10 hover:bg-forest/15 text-forest rounded-lg text-[9px] font-bold transition-colors flex items-center gap-1 flex-shrink-0"
               >
-                <X size={10} /> Pokaż cały miesiąc
+                <X size={10} /> Cały miesiąc
               </button>
             )}
           </div>
