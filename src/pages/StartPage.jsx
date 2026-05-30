@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Clock, ArrowRight, ChevronLeft, ChevronRight, AlertCircle, MapPin } from 'lucide-react'
 import AIOrb from '../components/AIOrb'
 import { useAuth } from '../context/AuthContext'
 import { getAssistantSuggestion } from '../utils/assistantEngine'
@@ -51,10 +51,8 @@ const mockNews = [
 
 function StartPage({ onNavigate }) {
   const { currentUser } = useAuth()
-  const [chatOpen, setChatOpen] = useState(false)
   const [announcementIndex, setAnnouncementIndex] = useState(0)
   const [suggestion, setSuggestion] = useState(null)
-  const sliderRef = useRef(null)
 
   // Generate suggestion whenever currentUser changes (e.g. points change or event join)
   useEffect(() => {
@@ -130,10 +128,18 @@ function StartPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* AI Orb */}
+      {/* Sołtys AI */}
       <AIOrb
         message={suggestion.text}
-        onTap={() => setChatOpen(true)}
+        actionLabel={
+          suggestion.type === 'event' ? 'Zobacz wydarzenie na mapie' :
+          suggestion.type === 'reward_expiry' ? 'Odbierz zniżkę w Nagrodach' :
+          suggestion.type === 'points' ? 'Sprawdź punkty w Nagrodach' :
+          suggestion.type === 'community' ? 'Przejdź do społeczności' :
+          suggestion.type === 'map' ? 'Otwórz mapę' :
+          'Sprawdź szczegóły'
+        }
+        onAction={() => onNavigate(suggestion.actionTab)}
       />
 
       {/* News */}
@@ -174,60 +180,48 @@ function StartPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* Chat Modal */}
-      {chatOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl p-5 pb-7 shadow-2xl animate-slide-up">
-            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center animate-breathe">
-                <div className="flex gap-0.5">
-                  <div className="w-1 h-1 bg-mint-light rounded-full" />
-                  <div className="w-1 h-1 bg-mint-light rounded-full" />
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-graphite">Asystent Tymbark</span>
-            </div>
-            
-            <div className="bg-soft-bg rounded-2xl p-4 mb-4 space-y-3 border border-card-border shadow-inner">
-              <p className="text-[13px] text-graphite font-semibold leading-tight text-forest">
-                Cześć {currentUser.name}! Oto co dla Ciebie mam:
-              </p>
-              <p className="text-[13px] text-graphite leading-relaxed">
-                {suggestion.text}
-              </p>
-              <button
-                onClick={() => {
-                  setChatOpen(false)
-                  onNavigate(suggestion.actionTab)
-                }}
-                className="w-full py-3 bg-forest text-white rounded-xl text-xs font-bold hover:bg-forest-mid active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-forest/10"
-              >
-                {suggestion.type === 'event' && 'Zobacz wydarzenie na mapie 🗺️'}
-                {suggestion.type === 'reward_expiry' && 'Otwórz Portfel i odbierz zniżkę 🥐'}
-                {suggestion.type === 'points' && 'Sprawdź swoje punkty w Portfelu 🎁'}
-                {suggestion.type === 'community' && 'Przejdź do tablicy społeczności 👥'}
-                {suggestion.type === 'map' && 'Przejdź do interaktywnej mapy 🗺️'}
-              </button>
-            </div>
-
-            <div className="flex gap-2">
-              <button className="w-9 h-9 rounded-xl bg-forest/10 flex items-center justify-center" aria-label="Nagraj głos">
-                <Mic size={16} className="text-forest" />
-              </button>
-              <input
-                type="text"
-                placeholder="Napisz do asystenta..."
-                className="flex-1 px-3.5 py-2 bg-soft-bg rounded-xl text-sm outline-none focus:ring-2 focus:ring-forest/20 border border-card-border"
-              />
-              <button className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center" aria-label="Wyślij">
-                <Send size={14} className="text-white" />
-              </button>
-            </div>
-          </div>
+      {/* Zgłoszenia społeczności */}
+      <section>
+        <div className="flex items-center justify-between mb-2.5">
+          <h2 className="text-sm font-bold text-graphite">Zgłoszenia w okolicy</h2>
+          <span className="text-[10px] text-graphite-light bg-soft-bg px-2 py-0.5 rounded-full">Uważaj!</span>
         </div>
-      )}
+        <div className="space-y-2">
+          {[
+            { id: 1, title: 'Dziura w jezdni', location: 'ul. Kościelna, przy sklepie', author: 'Jan K.', time: '2 godz. temu', status: 'active', description: 'Duża dziura po prawej stronie drogi jadąc od rynku. Łatwo wjechać po zmroku.' },
+            { id: 2, title: 'Połamane drzewo na chodniku', location: 'Park miejski, wejście od ul. Szkolnej', author: 'Maria N.', time: '5 godz. temu', status: 'active', description: 'Konar spadł po wczorajszej wichurze. Blokuje połowę chodnika, trzeba schodzić na jezdnię.' },
+            { id: 3, title: 'Niedziałająca latarnia', location: 'ul. Zamieście 14', author: 'Piotr W.', time: '1 dzień temu', status: 'reported', description: 'Latarnia nie świeci od tygodnia. Odcinek drogi kompletnie ciemny wieczorami.' },
+          ].map((report) => {
+            const isActive = report.status === 'active'
+            return (
+              <details key={report.id} className="card-base overflow-hidden group">
+                <summary className="p-3 flex items-center gap-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-red-50' : 'bg-orange-50'}`}>
+                    <AlertCircle size={14} className={isActive ? 'text-red-500' : 'text-warm-orange'} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-graphite leading-tight">{report.title}</p>
+                    <p className="text-[9px] text-graphite-light mt-0.5 flex items-center gap-1">
+                      <MapPin size={8} />{report.location}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-warm-orange'}`}>
+                      {isActive ? 'Aktywne' : 'Zgłoszone'}
+                    </span>
+                    <span className="text-[8px] text-gray-400">{report.time}</span>
+                  </div>
+                </summary>
+                <div className="px-3 pb-3 pt-1 border-t border-card-border">
+                  <p className="text-[11px] text-graphite-light leading-relaxed">{report.description}</p>
+                  <p className="text-[9px] text-graphite-light mt-2">Zgłosił/a: <span className="font-semibold text-graphite">{report.author}</span></p>
+                </div>
+              </details>
+            )
+          })}
+        </div>
+      </section>
+
     </div>
   )
 }

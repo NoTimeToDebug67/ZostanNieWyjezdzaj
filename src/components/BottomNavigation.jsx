@@ -1,5 +1,5 @@
 import React from 'react'
-import { Home, Map, Users, Wallet } from 'lucide-react'
+import { Home, Map, Users, Gift } from 'lucide-react'
 
 const tabs = [
   { id: 'start', label: 'Start', icon: Home },
@@ -7,7 +7,7 @@ const tabs = [
   // spacer for FAB
   { id: '_spacer', label: '', icon: null },
   { id: 'community', label: 'Społeczność', icon: Users },
-  { id: 'wallet', label: 'Portfel', icon: Wallet },
+  { id: 'wallet', label: 'Nagrody', icon: Gift },
 ]
 
 function BottomNavigation({ activeTab, onTabChange }) {

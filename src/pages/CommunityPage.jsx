@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft, ChevronDown } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft, ChevronDown, Navigation } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import mockEventsStatic from '../data/mockEvents'
@@ -469,10 +469,48 @@ function CommunityPage() {
   const firstDay = getFirstDayOfMonth(calYear, calMonth)
   const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1
 
-  // Style for calendar days - keeps standard days transparent and only highlights selected
+  // Helper to get if user is signed up for any event on a specific day
+  const isUserParticipatingOnDay = (day) => {
+    return events.some(ev => {
+      const info = getEventDateInfo(ev, calYear)
+      const isJoined = localJoinedIds.includes(ev.id.toString())
+      if (!isJoined) return false
+
+      if (info.isRecurring) {
+        const dateObj = new Date(calYear, calMonth, day)
+        const dayOfWeekIdx = dateObj.getDay()
+        const dayNamesEn = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota']
+        const currentDayOfWeekName = dayNamesEn[dayOfWeekIdx]
+
+        if (info.recurringType === 'daily') return true
+        if (info.recurringType === 'weekly') {
+          const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
+          return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
+                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+        }
+      } else {
+        return info.day === day &&
+               (info.month === null || info.month === calMonth) &&
+               (info.year === null || info.year === calYear)
+      }
+      return false
+    })
+  }
+
+  // Style for calendar days - keeps standard days transparent and only highlights selected, participating or event density days
   const getDayStyles = (dayNum, count, isSelected) => {
     if (isSelected) {
       return 'bg-forest text-white font-bold ring-2 ring-forest/30 shadow-md scale-105 z-10'
+    }
+    const isParticipating = isUserParticipatingOnDay(dayNum)
+    if (isParticipating) {
+      return 'bg-mint/20 text-forest font-bold border border-mint/40 hover:bg-mint/30 shadow-sm'
     }
     if (count > 0) {
       return 'bg-gray-200 text-graphite font-bold hover:bg-gray-300 border border-gray-300/40 shadow-sm'
@@ -859,7 +897,9 @@ function CommunityPage() {
                   <button
                     key={event.id}
                     onClick={() => setSelectedEvent(event)}
-                    className="w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                    className={`w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform ${
+                      isJoined ? 'bg-mint/15 border border-mint/30 shadow-inner-glow' : 'border border-transparent'
+                    }`}
                   >
                     <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
                       isJoined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
@@ -1010,14 +1050,28 @@ function CommunityPage() {
 
                 return (
                   <div className="mt-4 space-y-2">
-                    <button
-                      onClick={() => { toggleJoinEvent(selectedEvent); setSelectedEvent(null) }}
-                      className={`w-full py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
-                        isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
-                      }`}
-                    >
-                      {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
-                    </button>
+                    <div className="flex gap-2">
+                      {selectedEvent.latitude && selectedEvent.longitude && (
+                        <button
+                          onClick={() => {
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedEvent.latitude},${selectedEvent.longitude}`, '_blank');
+                          }}
+                          className="flex-1 py-3 bg-soft-bg text-forest border border-card-border hover:bg-gray-100 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+                        >
+                          <Navigation size={14} /> Nawiguj
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { toggleJoinEvent(selectedEvent); setSelectedEvent(null) }}
+                        className={`py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
+                          selectedEvent.latitude && selectedEvent.longitude ? 'flex-1' : 'w-full'
+                        } ${
+                          isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
+                        }`}
+                      >
+                        {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
+                      </button>
+                    </div>
 
                     {/* Create/join group - only if participated */}
                     {isJoined && (

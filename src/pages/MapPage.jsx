@@ -96,9 +96,9 @@ function MapController({ bounds, center }) {
 
   useEffect(() => {
     if (bounds) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13, animate: true, duration: 0.8 });
+      map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 13, duration: 1.2 });
     } else if (center) {
-      map.setView(center, 12, { animate: true, duration: 0.8 });
+      map.flyTo(center, 12, { duration: 1.0 });
     }
   }, [bounds, center, map]);
 
@@ -401,6 +401,11 @@ function MapPage() {
               placeholder="Szukaj gminy w regionie..."
               value={searchQuery}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchSuggestions.length > 0) {
+                  handleSuggestionClick(searchSuggestions[0]);
+                }
+              }}
               className="w-full text-xs font-medium text-graphite placeholder-graphite-light bg-transparent border-none outline-none"
             />
             {searchQuery && (
@@ -614,6 +619,8 @@ function MapPage() {
                       key={event.id}
                       className={`bg-white rounded-2xl border p-3 flex flex-col gap-2.5 shadow-sm transition-all duration-300 ${isHighlighted
                         ? 'border-forest ring-1 ring-forest/20 scale-[1.01] bg-forest/[0.01]'
+                        : isJoined
+                        ? 'bg-mint/10 border-mint/30'
                         : 'border-card-border'
                         }`}
                     >
@@ -663,15 +670,27 @@ function MapPage() {
                           {event.attendees_count} {(() => { const n = event.attendees_count; const mod10 = n % 10; const mod100 = n % 100; if (n === 1) return 'osoba'; if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'osoby'; return 'osób'; })()}
                         </span>
                         {event.type === 'event' ? (
-                          <button
-                            onClick={() => toggleJoinEvent(event)}
-                            className={`px-3 py-1 rounded-xl text-[9px] font-bold transition-all ${isJoined
-                              ? 'bg-forest/10 text-forest hover:bg-forest/20'
-                              : 'gradient-primary text-white hover:opacity-95 active:scale-95'
-                              }`}
-                          >
-                            {isJoined ? 'Zrezygnuj' : 'Zapisz się'}
-                          </button>
+                          <div className="flex gap-1.5">
+                            {event.latitude && event.longitude && (
+                              <button
+                                onClick={() => {
+                                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`, '_blank');
+                                }}
+                                className="px-2.5 py-1 bg-soft-bg text-forest hover:bg-gray-100 rounded-xl text-[9px] font-bold transition-all flex items-center gap-1"
+                              >
+                                <Navigation size={10} /> Nawiguj
+                              </button>
+                            )}
+                            <button
+                              onClick={() => toggleJoinEvent(event)}
+                              className={`px-3 py-1 rounded-xl text-[9px] font-bold transition-all ${isJoined
+                                ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                                : 'gradient-primary text-white hover:opacity-95 active:scale-95'
+                                }`}
+                            >
+                              {isJoined ? 'Zrezygnuj' : 'Zapisz się'}
+                            </button>
+                          </div>
                         ) : (
                           <button
                             onClick={() => {
@@ -785,21 +804,37 @@ function MapPage() {
             ) : (
               (() => {
                 const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === selectedPin.id.toString());
+                const hasCoords = selectedPin.latitude && selectedPin.longitude;
                 return (
-                  <button
-                    onClick={async () => {
-                      await toggleJoinEvent(selectedPin);
-                      const updated = events.find(e => e.id === selectedPin.id);
-                      if (updated) setSelectedPin(updated);
-                    }}
-                    className={`w-full py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${isJoined
-                      ? 'bg-forest/10 text-forest hover:bg-forest/20'
-                      : 'gradient-primary text-white hover:opacity-95 active:scale-[0.98]'
+                  <div className="flex gap-3">
+                    {hasCoords && (
+                      <button
+                        onClick={() => {
+                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPin.latitude},${selectedPin.longitude}`, '_blank');
+                        }}
+                        className="flex-1 py-3.5 bg-soft-bg text-forest border border-card-border hover:bg-gray-100 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                      >
+                        <Navigation size={14} />
+                        Nawiguj
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        await toggleJoinEvent(selectedPin);
+                        const updated = events.find(e => e.id === selectedPin.id);
+                        if (updated) setSelectedPin(updated);
+                      }}
+                      className={`py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                        hasCoords ? 'flex-1' : 'w-full'
+                      } ${isJoined
+                        ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                        : 'gradient-primary text-white hover:opacity-95 active:scale-[0.98]'
                       }`}
-                  >
-                    <Users size={14} />
-                    {isJoined ? 'Zrezygnuj z udziału' : 'Zapisz się na wydarzenie'}
-                  </button>
+                    >
+                      <Users size={14} />
+                      {isJoined ? 'Zrezygnuj' : 'Zapisz się'}
+                    </button>
+                  </div>
                 );
               })()
             )}
