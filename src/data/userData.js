@@ -30,6 +30,18 @@ const userData = {
       date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
       location: 'Remiza OSP Tymbark',
     },
+    {
+      id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', // Sąsiedzkie Repair Cafe w remizie
+      title: 'Sąsiedzkie Repair Cafe w remizie',
+      date: new Date('2026-06-15T15:00:00'),
+      location: 'Remiza OSP Tymbark',
+    },
+    {
+      id: 'past-1',
+      title: 'Warsztaty Pieczenia Chleba KGW',
+      date: new Date('2026-06-12T10:00:00'),
+      location: 'Świetlica Wiejska, Piekiełko',
+    }
   ],
 
   // Available rewards / discounts
