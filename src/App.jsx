@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import BottomNavigation from './components/BottomNavigation'
 import FAB from './components/FAB'
 import StartPage from './pages/StartPage'
@@ -10,6 +10,11 @@ import ProfilePage from './pages/ProfilePage'
 function App() {
   const [activeTab, setActiveTab] = useState('start')
   const [fabOpen, setFabOpen] = useState(false)
+
+  // Reset window scroll to top when changing tabs to prevent viewport offsets on non-scrollable pages like MapPage
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
 
   const renderPage = () => {
     switch (activeTab) {
@@ -56,7 +61,7 @@ function App() {
       )}
 
       {/* Main content */}
-      <main className="pb-28 min-h-screen">
+      <main className={activeTab === 'map' ? 'h-[calc(100vh-44px)] overflow-hidden' : 'pb-28 min-h-screen'}>
         {renderPage()}
       </main>
 
