@@ -1,16 +1,20 @@
 import React, { useState } from 'react'
 import { QrCode, Trophy, Star, Gift, X } from 'lucide-react'
-import userData from '../data/userData'
+import { useAuth } from '../context/AuthContext'
 
 function WalletPage() {
+  const { currentUser } = useAuth()
   const [selectedReward, setSelectedReward] = useState(null)
-  const points = userData.points
-  const nextReward = userData.nextRewardThreshold
+
+  if (!currentUser) return null
+
+  const points = currentUser.points
+  const nextReward = currentUser.nextRewardThreshold
   const progress = Math.round((points / nextReward) * 100)
-  const rewards = userData.rewards
+  const rewards = currentUser.rewards
 
   return (
-    <div className="px-4 space-y-5">
+    <div className="px-4 space-y-5 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Portfel</h1>
@@ -61,15 +65,15 @@ function WalletPage() {
         {/* Stats row */}
         <div className="flex divide-x divide-card-border">
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-forest">{userData.stats.reports}</span>
+            <span className="text-sm font-bold text-forest">{currentUser.stats.reports}</span>
             <p className="text-[9px] text-graphite-light">Zgłoszeń</p>
           </div>
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-warm-orange">{userData.stats.initiatives}</span>
+            <span className="text-sm font-bold text-warm-orange">{currentUser.stats.initiatives}</span>
             <p className="text-[9px] text-graphite-light">Inicjatyw</p>
           </div>
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-mint">{userData.stats.votes}</span>
+            <span className="text-sm font-bold text-mint">{currentUser.stats.votes}</span>
             <p className="text-[9px] text-graphite-light">Głosów</p>
           </div>
         </div>

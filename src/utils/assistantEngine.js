@@ -1,10 +1,12 @@
-import userData from '../data/userData';
+import initialUserData from '../data/userData';
 
 /**
  * Calculates human-readable time remaining for events
  */
 function getTimeRemainingText(targetDate) {
-  const diffMs = targetDate.getTime() - Date.now();
+  // Handle case where targetDate is a string (e.g. if loaded from local DB or serialized state)
+  const dateObj = targetDate instanceof Date ? targetDate : new Date(targetDate);
+  const diffMs = dateObj.getTime() - Date.now();
   const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
   
   if (diffHours <= 1) {
@@ -21,54 +23,63 @@ function getTimeRemainingText(targetDate) {
  * Calculates human-readable days remaining for discounts
  */
 function getDaysRemaining(targetDate) {
-  const diffMs = targetDate.getTime() - Date.now();
+  const dateObj = targetDate instanceof Date ? targetDate : new Date(targetDate);
+  const diffMs = dateObj.getTime() - Date.now();
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }
 
 /**
  * The Rule-based Assistant Engine
+ * Accepts a dynamic user object. Fallbacks to initialUserData if null.
  */
-export function getAssistantSuggestion() {
+export function getAssistantSuggestion(user) {
+  const activeUser = user || initialUserData;
   const suggestions = [];
 
   // RULE 1: Event approaching (within next 48 hours)
-  userData.joinedEvents.forEach(event => {
-    const diffMs = event.date.getTime() - Date.now();
-    const diffHours = diffMs / (1000 * 60 * 60);
+  if (activeUser.joinedEvents && activeUser.joinedEvents.length > 0) {
+    activeUser.joinedEvents.forEach(event => {
+      const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+      const diffMs = eventDate.getTime() - Date.now();
+      const diffHours = diffMs / (1000 * 60 * 60);
 
-    if (diffHours > 0 && diffHours <= 48) {
-      const timeText = getTimeRemainingText(event.date);
-      suggestions.push({
-        id: `event-${event.id}`,
-        text: `Zbliża się wydarzenie "${event.title}"! Zaczynamy ${timeText} w lokalizacji: ${event.location}. Wybierasz się? 📅`,
-        type: 'event',
-        weight: 4, // High priority
-        actionTab: 'map', // Navigate to Map Page
-      });
-    }
-  });
+      if (diffHours > 0 && diffHours <= 48) {
+        const timeText = getTimeRemainingText(eventDate);
+        suggestions.push({
+          id: `event-${event.id}`,
+          text: `Zbliża się wydarzenie "${event.title}"! Zaczynamy ${timeText} w lokalizacji: ${event.location}. Wybierasz się? 📅`,
+          type: 'event',
+          weight: 4, // High priority
+          actionTab: 'map', // Navigate to Map Page
+        });
+      }
+    });
+  }
 
   // RULE 2: Discount expiring (within next 5 days)
-  userData.rewards.forEach(reward => {
-    const daysRemaining = getDaysRemaining(reward.validUntil);
-    if (daysRemaining > 0 && daysRemaining <= 5) {
-      suggestions.push({
-        id: `reward-expire-${reward.id}`,
-        text: `Twój rabat ${reward.discount} w "${reward.title}" (${reward.description}) wygasa za ${daysRemaining} ${daysRemaining === 1 ? 'dzień' : 'dni'}! Wykorzystaj go póki czas! 🥐`,
-        type: 'reward_expiry',
-        weight: 3, // Medium-High priority
-        actionTab: 'wallet', // Navigate to Wallet Page
-      });
-    }
-  });
+  if (activeUser.rewards && activeUser.rewards.length > 0) {
+    activeUser.rewards.forEach(reward => {
+      const expiryDate = reward.validUntil instanceof Date ? reward.validUntil : new Date(reward.validUntil);
+      const daysRemaining = getDaysRemaining(expiryDate);
+      if (daysRemaining > 0 && daysRemaining <= 5) {
+        suggestions.push({
+          id: `reward-expire-${reward.id}`,
+          text: `Twój rabat ${reward.discount} w "${reward.title}" (${reward.description}) wygasa za ${daysRemaining} ${daysRemaining === 1 ? 'dzień' : 'dni'}! Wykorzystaj go póki czas! 🥐`,
+          type: 'reward_expiry',
+          weight: 3, // Medium-High priority
+          actionTab: 'wallet', // Navigate to Wallet Page
+        });
+      }
+    });
+  }
 
   // RULE 3: Points threshold progress (points > 60% of next reward)
-  const pointsRatio = userData.points / userData.nextRewardThreshold;
+  const pointsRatio = activeUser.points / activeUser.nextRewardThreshold;
   if (pointsRatio >= 0.6) {
-    const pointsLeft = userData.nextRewardThreshold - userData.points;
+    const pointsLeft = activeUser.nextRewardThreshold - activeUser.points;
     suggestions.push({
       id: 'points-progress',
-      text: `Świetnie Ci idzie! Masz już ${userData.points} punktów. Brakuje Ci tylko ${pointsLeft} pkt do kolejnej super zniżki! Zrób zgłoszenie i zgarnij bonus! 🎁`,
+      text: `Świetnie Ci idzie! Masz już ${activeUser.points} punktów. Brakuje Ci tylko ${pointsLeft} pkt do kolejnej super zniżki! Zrób zgłoszenie i zgarnij bonus! 🎁`,
       type: 'points',
       weight: 2, // Medium priority
       actionTab: 'wallet',
@@ -78,7 +89,7 @@ export function getAssistantSuggestion() {
   // RULE 4: General Community invitation (default backup)
   suggestions.push({
     id: 'community-check',
-    text: `W Twoim sołectwie ${userData.village} jest dzisiaj sporo aktywności! Sprawdź tablicę społeczności, aby zobaczyć inicjatywy sąsiadów! 👥`,
+    text: `W Twoim sołectwie ${activeUser.village} jest dzisiaj sporo aktywności! Sprawdź tablicę społeczności, aby zobaczyć inicjatywy sąsiadów! 👥`,
     type: 'community',
     weight: 1, // Low priority
     actionTab: 'community',
