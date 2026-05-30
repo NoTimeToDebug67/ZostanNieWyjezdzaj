@@ -602,7 +602,7 @@ function MapPage() {
                       <div className="flex items-center justify-between border-t border-gray-100 pt-2.5 mt-0.5">
                         <span className="text-[9px] font-semibold text-graphite-light flex items-center gap-1">
                           <Users size={11} className="text-graphite-light" />
-                          {event.attendees} {event.attendees === 1 ? 'osoba' : (event.attendees < 5 && event.attendees > 1 ? 'osoby' : 'osób')}
+                          {event.attendees} {(() => { const n = event.attendees; const mod10 = n % 10; const mod100 = n % 100; if (n === 1) return 'osoba'; if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'osoby'; return 'osób'; })()}
                         </span>
                         <button
                           onClick={() => toggleJoinEvent(event.id)}
