@@ -10,6 +10,99 @@ const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate()
 const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay()
 const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień']
 
+const getPolishGenitiveMonth = (monthIndex) => {
+  const genitiveMonths = [
+    'Stycznia', 'Lutego', 'Marca', 'Kwietnia', 'Maja', 'Czerwca',
+    'Lipca', 'Sierpnia', 'Września', 'Października', 'Listopada', 'Grudnia'
+  ];
+  return genitiveMonths[monthIndex] || '';
+}
+
+const parsePolishMonth = (monthStr) => {
+  if (!monthStr) return null;
+  const m = monthStr.toLowerCase();
+  if (m.includes('styc') || m.includes('stysz')) return 0;
+  if (m.includes('lut')) return 1;
+  if (m.includes('marc') || m.includes('marz')) return 2;
+  if (m.includes('kwie')) return 3;
+  if (m.includes('maj')) return 4;
+  if (m.includes('czerw')) return 5;
+  if (m.includes('lip')) return 6;
+  if (m.includes('sierp')) return 7;
+  if (m.includes('wrzes')) return 8;
+  if (m.includes('paźd') || m.includes('pazd')) return 9;
+  if (m.includes('list')) return 10;
+  if (m.includes('grud')) return 11;
+  return null;
+}
+
+const getEventDateInfo = (ev, selectedYear) => {
+  const dateStr = ev.event_date || ev.date;
+  if (!dateStr) return { day: null, month: null, year: null, isRecurring: false };
+
+  // 1. If it contains dashes (like YYYY-MM-DD)
+  if (dateStr.includes('-')) {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return {
+        day: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        isRecurring: false
+      };
+    }
+  }
+
+  // 2. If it is "Codziennie" or recurring like "Każda Sobota"
+  const normalized = dateStr.toLowerCase().trim();
+  if (normalized === 'codziennie') {
+    return { day: null, month: null, year: null, isRecurring: true, recurringType: 'daily' };
+  }
+  if (normalized.startsWith('każdy') || normalized.startsWith('każda') || normalized.startsWith('kazdy') || normalized.startsWith('kazda')) {
+    return { day: null, month: null, year: null, isRecurring: true, recurringType: 'weekly', dayOfWeek: ev.event_day };
+  }
+
+  // 3. If it is "15 Czerwca" or "5 Września"
+  const parts = normalized.split(/\s+/);
+  if (parts.length >= 2) {
+    const dayNum = parseInt(parts[0]);
+    const monthIdx = parsePolishMonth(parts[1]);
+    if (!isNaN(dayNum) && monthIdx !== null) {
+      return {
+        day: dayNum,
+        month: monthIdx,
+        year: selectedYear,
+        isRecurring: false
+      };
+    }
+  }
+
+  // Fallback: if there is just a number
+  const num = parseInt(dateStr);
+  if (!isNaN(num)) {
+    return {
+      day: num,
+      month: null,
+      year: null,
+      isRecurring: false
+    };
+  }
+
+  return { day: null, month: null, year: null, isRecurring: false };
+}
+
+const SIMULATED_TODAY = new Date('2026-06-16') // Default calendar showcase simulated date
+
+const isEventPast = (ev) => {
+  const info = getEventDateInfo(ev, 2026)
+  if (info.isRecurring) return false
+  if (info.day && info.month !== null && info.year) {
+    const evDate = new Date(info.year, info.month, info.day)
+    return evDate < SIMULATED_TODAY
+  }
+  return false
+}
+
 function CommunityPage() {
   const { currentUser, joinEvent, leaveEvent, isSupabaseActive } = useAuth()
 
@@ -18,8 +111,10 @@ function CommunityPage() {
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState('wszystkie')
-  const [calMonth, setCalMonth] = useState(11)
+  const [eventScope, setEventScope] = useState('all') // 'all' or 'joined'
+  const [calMonth, setCalMonth] = useState(5) // Default to June 2026 (high event density for hackathon showcase!)
   const [calYear, setCalYear] = useState(2026)
+  const [selectedDay, setSelectedDay] = useState(null)
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEvent, setNewEvent] = useState({ title: '', category: 'lokalne', location: '', date: '', time: '', description: '' })
 
@@ -106,13 +201,23 @@ function CommunityPage() {
     if (!currentUser) return
     const existing = groups.find(g => g.eventId === event.id.toString())
     if (existing) return
+
+    const isPast = isEventPast(event)
+    const mockMembers = ['Janusz z Tymbarku', 'Kasia Nowak', 'Marek Sołtys', currentUser.name]
+    const mockMessages = isPast ? [
+      { from: 'Janusz z Tymbarku', text: 'Świetne wydarzenie! Naprawdę cieszę się, że mogłem wziąć udział.', time: 'Wczoraj, 18:24' },
+      { from: 'Kasia Nowak', text: 'Zgadzam się, warsztaty i organizacja były na najwyższym poziomie! Kiedy następne?', time: 'Wczoraj, 19:10' },
+      { from: 'Marek Sołtys', text: 'Dziękuję wszystkim sąsiadom za tak liczny udział! Zostańmy w kontakcie na tym czacie.', time: 'Dziś, 09:15' },
+    ] : []
+
     const newGroup = {
       id: 'grp-' + Date.now(),
       eventId: event.id.toString(),
-      name: event.title,
-      members: [currentUser.name],
-      messages: [],
+      name: `Społeczność: ${event.title}`,
+      members: mockMembers,
+      messages: mockMessages,
       createdAt: new Date().toISOString(),
+      isPastCommunity: isPast
     }
     saveGroups([...groups, newGroup])
   }
@@ -145,24 +250,136 @@ function CommunityPage() {
   const firstDay = getFirstDayOfMonth(calYear, calMonth)
   const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1
 
-  const eventDays = events.reduce((acc, ev) => {
-    const dateStr = ev.event_date || ev.date
-    if (!dateStr) return acc
-    let day = null
-    if (dateStr.includes('-')) {
-      const d = new Date(dateStr)
-      if (d.getMonth() === calMonth && d.getFullYear() === calYear) day = d.getDate()
-    } else {
-      const num = parseInt(dateStr)
-      if (!isNaN(num)) day = num
+  // Style for calendar days - keeps standard days transparent and only highlights selected
+  const getDayStyles = (dayNum, count, isSelected) => {
+    if (isSelected) {
+      return 'bg-forest text-white font-bold ring-2 ring-forest/30 shadow-md scale-105 z-10'
     }
-    if (day) acc[day] = (acc[day] || 0) + 1
-    return acc
-  }, {})
+    if (count > 0) {
+      return 'bg-gray-200 text-graphite font-bold hover:bg-gray-300 border border-gray-300/40 shadow-sm'
+    }
+    return 'text-graphite hover:bg-soft-bg'
+  }
 
-  const filteredEvents = categoryFilter === 'wszystkie'
-    ? events
-    : events.filter(e => (e.category || '').toLowerCase() === categoryFilter)
+  // Dynamic colors for the small event count badges (top-right circles)
+  const getBadgeStyles = (count, isSelected) => {
+    if (isSelected) {
+      return 'bg-yellow-300 text-forest shadow-sm scale-110'
+    }
+    if (count === 1) {
+      return 'bg-forest/15 text-forest font-bold'
+    }
+    if (count === 2) {
+      return 'bg-forest/45 text-white font-bold'
+    }
+    if (count === 3) {
+      return 'bg-forest text-white font-bold'
+    }
+    return 'bg-warm-orange text-white font-black shadow-sm shadow-warm-orange/10'
+  }
+
+  // Calculate event count for a specific day in selected year/month, respecting category, eventScope and including recurring
+  const getEventCountForDay = (day, month, year) => {
+    const dateObj = new Date(year, month, day)
+    const dayOfWeekIdx = dateObj.getDay()
+    const dayNamesEn = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota']
+    const currentDayOfWeekName = dayNamesEn[dayOfWeekIdx]
+
+    return events.filter(ev => {
+      // Scope Filter (All vs Joined)
+      const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === ev.id.toString())
+      if (eventScope === 'joined' && !isJoined) {
+        return false
+      }
+
+      // Category Filter
+      if (categoryFilter !== 'wszystkie' && (ev.category || '').toLowerCase() !== categoryFilter.toLowerCase()) {
+        return false
+      }
+
+      const info = getEventDateInfo(ev, year)
+      if (info.isRecurring) {
+        if (info.recurringType === 'daily') return true
+        if (info.recurringType === 'weekly') {
+          const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
+          return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
+                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+        }
+      } else {
+        return info.day === day &&
+               (info.month === null || info.month === month) &&
+               (info.year === null || info.year === year)
+      }
+      return false
+    }).length
+  }
+
+  // Populate event counts for current calendar view
+  const eventDays = {}
+  for (let d = 1; d <= daysInMonth; d++) {
+    const count = getEventCountForDay(d, calMonth, calYear)
+    if (count > 0) {
+      eventDays[d] = count
+    }
+  }
+
+  // Filter events list by category, selected month, year, eventScope, and selectedDay (if active)
+  const filteredEvents = events.filter(ev => {
+    // 1. Scope Filter (All vs Joined)
+    const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === ev.id.toString())
+    if (eventScope === 'joined' && !isJoined) {
+      return false
+    }
+
+    // 2. Category Filter
+    if (categoryFilter !== 'wszystkie' && (ev.category || '').toLowerCase() !== categoryFilter.toLowerCase()) {
+      return false
+    }
+
+    const info = getEventDateInfo(ev, calYear)
+
+    // 3. Day-specific filter
+    if (selectedDay !== null) {
+      if (info.isRecurring) {
+        const dateObj = new Date(calYear, calMonth, selectedDay)
+        const dayOfWeekIdx = dateObj.getDay()
+        const dayNamesEn = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota']
+        const currentDayOfWeekName = dayNamesEn[dayOfWeekIdx]
+
+        if (info.recurringType === 'daily') return true
+        if (info.recurringType === 'weekly') {
+          const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
+          return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
+                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+        }
+      } else {
+        return info.day === selectedDay &&
+               (info.month === null || info.month === calMonth) &&
+               (info.year === null || info.year === calYear)
+      }
+    } else {
+      // 4. Month-wide filter
+      if (info.isRecurring) {
+        return true
+      } else {
+        return (info.month === null || info.month === calMonth) &&
+               (info.year === null || info.year === calYear)
+      }
+    }
+    return false
+  })
 
   // Check if user participated in event (for group creation eligibility)
   const canCreateGroup = (event) => {
@@ -261,13 +478,21 @@ function CommunityPage() {
       </div>
 
       {/* Tabs: Wydarzenia / Grupy */}
-      <div className="flex bg-white rounded-xl border border-card-border p-1 shadow-card">
+      <div className="relative flex bg-white rounded-xl border border-card-border p-1 shadow-card">
+        {/* Sliding background pill indicator */}
+        <div
+          className="absolute top-1 bottom-1 bg-forest rounded-lg shadow-sm transition-all duration-300 ease-out"
+          style={{
+            left: tab === 'events' ? '4px' : 'calc(50% + 2px)',
+            width: 'calc(50% - 6px)'
+          }}
+        />
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 ${
-              tab === t.id ? 'bg-forest text-white shadow-sm' : 'text-graphite-light hover:text-graphite'
+            className={`relative z-10 flex-1 py-2 rounded-lg text-[11px] font-semibold transition-colors duration-300 ${
+              tab === t.id ? 'text-white font-bold' : 'text-graphite-light hover:text-graphite'
             }`}
           >
             {t.label}
@@ -287,14 +512,43 @@ function CommunityPage() {
             <span className="text-[11px] font-semibold text-forest">Dodaj wydarzenie lokalne</span>
           </button>
 
+          {/* Segmented Control Scope Switch */}
+          <div className="relative flex bg-slate-100 rounded-xl p-1 border border-card-border shadow-inner">
+            {/* Sliding background pill indicator */}
+            <div
+              className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 ease-out"
+              style={{
+                left: eventScope === 'all' ? '4px' : 'calc(50% + 2px)',
+                width: 'calc(50% - 6px)'
+              }}
+            />
+            <button
+              onClick={() => { setSelectedDay(null); setEventScope('all'); }}
+              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 ${
+                eventScope === 'all' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
+              }`}
+            >
+              Wszystkie wydarzenia
+            </button>
+            <button
+              onClick={() => { setSelectedDay(null); setEventScope('joined'); }}
+              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 flex items-center justify-center gap-1.5 ${
+                eventScope === 'joined' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
+              }`}
+            >
+              <Check size={11} className={eventScope === 'joined' ? 'text-forest' : 'text-graphite-light'} />
+              Moje wydarzenia ({currentUser?.joinedEvents?.length || 0})
+            </button>
+          </div>
+
           {/* Mini calendar */}
           <div className="card-base p-3">
             <div className="flex items-center justify-between mb-2">
-              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="w-6 h-6 rounded-full bg-soft-bg flex items-center justify-center" aria-label="Poprzedni miesiąc">
+              <button onClick={() => { setSelectedDay(null); if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) } else setCalMonth(calMonth - 1) }} className="w-6 h-6 rounded-full bg-soft-bg flex items-center justify-center" aria-label="Poprzedni miesiąc">
                 <ChevronLeft size={12} className="text-graphite-light" />
               </button>
               <span className="text-[11px] font-bold text-graphite">{monthNames[calMonth]} {calYear}</span>
-              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="w-6 h-6 rounded-full bg-soft-bg flex items-center justify-center" aria-label="Następny miesiąc">
+              <button onClick={() => { setSelectedDay(null); if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) } else setCalMonth(calMonth + 1) }} className="w-6 h-6 rounded-full bg-soft-bg flex items-center justify-center" aria-label="Następny miesiąc">
                 <ChevronRight size={12} className="text-graphite-light" />
               </button>
             </div>
@@ -308,10 +562,19 @@ function CommunityPage() {
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1
                 const count = eventDays[day]
+                const isSelected = selectedDay === day
                 return (
-                  <button key={day} className={`relative w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-medium transition-colors ${count ? 'bg-forest/10 text-forest font-bold' : 'text-graphite hover:bg-soft-bg'}`}>
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(isSelected ? null : day)}
+                    className={`relative w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-medium transition-all ${getDayStyles(day, count, isSelected)}`}
+                  >
                     {day}
-                    {count && <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-forest text-white text-[7px] font-bold rounded-full flex items-center justify-center">{count}</span>}
+                    {count > 0 && (
+                      <span className={`absolute -top-0.5 -right-0.5 w-3.5 h-3.5 text-[7px] font-bold rounded-full flex items-center justify-center transition-all ${getBadgeStyles(count, isSelected)}`}>
+                        {count}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -333,6 +596,30 @@ function CommunityPage() {
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
               </button>
             ))}
+          </div>
+
+          {/* Calendar Active Filter Badge */}
+          <div className="flex items-center justify-between bg-white rounded-2xl border border-card-border p-3 shadow-sm">
+            <span className="text-[11px] font-bold text-graphite flex items-center gap-1.5">
+              <Calendar size={13} className="text-forest" />
+              {selectedDay !== null ? (
+                <>
+                  Dzień: <span className="text-forest underline decoration-2 decoration-mint/40">{selectedDay} {getPolishGenitiveMonth(calMonth)} {calYear}</span>
+                </>
+              ) : (
+                <>
+                  Miesiąc: <span className="text-forest underline decoration-2 decoration-mint/40">{monthNames[calMonth]} {calYear}</span>
+                </>
+              )}
+            </span>
+            {selectedDay !== null && (
+              <button
+                onClick={() => setSelectedDay(null)}
+                className="px-2 py-1 bg-forest/10 hover:bg-forest/15 text-forest rounded-lg text-[9px] font-bold transition-colors flex items-center gap-1"
+              >
+                <X size={10} /> Pokaż cały miesiąc
+              </button>
+            )}
           </div>
 
           {/* Events list */}
@@ -459,6 +746,41 @@ function CommunityPage() {
               {(() => {
                 const isJoined = canCreateGroup(selectedEvent)
                 const existingGroup = getGroupForEvent(selectedEvent.id)
+                const isPast = isEventPast(selectedEvent)
+
+                if (isPast) {
+                  return (
+                    <div className="mt-4 space-y-2">
+                      <div className="w-full py-2.5 bg-gray-100 rounded-xl text-[11px] text-gray-500 font-bold flex items-center justify-center gap-1.5 border border-gray-200">
+                        <span>⌛ Wydarzenie archiwalne</span>
+                        {isJoined && <span className="text-forest bg-forest/10 px-1.5 py-0.5 rounded-full text-[9px] ml-1.5">Brałeś udział</span>}
+                      </div>
+
+                      <button
+                        onClick={async () => {
+                          if (!isJoined) {
+                            await joinEvent(selectedEvent)
+                          }
+                          createGroupFromEvent(selectedEvent)
+                          setSelectedEvent(null)
+                          
+                          // Wait briefly and open the newly created group chat
+                          setTimeout(() => {
+                            const group = getGroupForEvent(selectedEvent.id)
+                            if (group) {
+                              setSelectedGroup(group.id)
+                              setTab('groups')
+                            }
+                          }, 100)
+                        }}
+                        className="w-full py-3 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 bg-forest text-white active:scale-[0.97] transition-all hover:bg-forest-mid shadow-md shadow-forest/15"
+                      >
+                        <MessageSquare size={14} /> Dołącz do społeczności czatu
+                      </button>
+                    </div>
+                  )
+                }
+
                 return (
                   <div className="mt-4 space-y-2">
                     <button
