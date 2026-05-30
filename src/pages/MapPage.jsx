@@ -15,7 +15,6 @@ const mockPins = [
     type: 'landmark',
     gmina: 'Tymbark',
     coords: [49.719, 20.298],
-    image: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400&h=200&fit=crop',
     action: 'Nawiguj',
   },
   {
@@ -25,7 +24,6 @@ const mockPins = [
     type: 'event',
     gmina: 'Tymbark',
     coords: [49.734, 20.315],
-    image: 'https://images.unsplash.com/photo-1529543544006-1bd3f5ba0c2a?w=400&h=200&fit=crop',
     action: 'Dołącz',
   },
 ];
@@ -42,7 +40,6 @@ const mockEvents = [
     location: 'Tymbark, Rynek',
     attendees: 120,
     joined: false,
-    image: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400&h=200&fit=crop',
     description: 'Zabytkowy kościół z XVII wieku – perła drewnianej architektury sakralnej Małopolski.'
   },
   {
@@ -56,7 +53,6 @@ const mockEvents = [
     location: 'Park miejski w Tymbarku',
     attendees: 56,
     joined: false,
-    image: 'https://images.unsplash.com/photo-1529543544006-1bd3f5ba0c2a?w=400&h=200&fit=crop',
     description: 'Sobota, 14:00. Gry, muzyka na żywo i wspólne grillowanie dla wszystkich mieszkańców.'
   }
 ];
@@ -168,6 +164,35 @@ function MapPage() {
   // Events state and active category filter
   const [events, setEvents] = useState(mockEvents)
   const [selectedCategory, setSelectedCategory] = useState('Wszystkie')
+
+  // Drag to dismiss states
+  const [dragOffsetY, setDragOffsetY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+
+  const handleTouchStart = (e) => {
+    setStartY(e.touches[0].clientY);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY;
+    if (deltaY > 0) {
+      setDragOffsetY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (dragOffsetY > 100) {
+      setSelectedGmina(null);
+      setPriorityEventId(null);
+      setSelectedPin(null);
+    }
+    setDragOffsetY(0);
+  };
 
   // Reset selected category when gmina changes
   useEffect(() => {
@@ -469,7 +494,7 @@ function MapPage() {
         </button>
       )}
 
-      {/* Bottom panel - Gmina details (80% height with Category events sorting) */}
+      {/* Bottom panel - Gmina details (75% height with Category events sorting) */}
       {selectedGmina && (() => {
         const name = selectedGmina.properties.JPT_NAZWA_;
         const gminaEvents = events.filter(e => e.gmina === name);
@@ -488,9 +513,22 @@ function MapPage() {
           : sortedGminaEvents.filter(e => e.category === selectedCategory);
 
         return (
-          <div className="absolute bottom-0 inset-x-0 h-[80%] z-[1020] bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border animate-slide-up">
-            {/* Grab bar */}
-            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto my-3 flex-shrink-0" />
+          <div 
+            style={{
+              transform: isDragging || dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
+              transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+            className="absolute bottom-0 inset-x-0 h-[75%] z-[1020] bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border animate-slide-up"
+          >
+            {/* Grab bar / drag area */}
+            <div 
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="w-full py-3 flex-shrink-0 cursor-row-resize touch-pan-y"
+            >
+              <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
+            </div>
 
             {/* Header info */}
             <div className="px-5 pb-3 flex-shrink-0 border-b border-gray-100">
@@ -633,26 +671,33 @@ function MapPage() {
 
       {/* Bottom panel - Landmark/Event Pin details */}
       {selectedPin && (
-        <div className="absolute bottom-0 inset-x-0 z-[1020] animate-slide-up">
-          <div className="bg-white rounded-t-4xl shadow-2xl overflow-hidden border-t border-card-border">
-            {/* Image header */}
-            <div className="relative h-36">
-              <img
-                src={selectedPin.image}
-                alt={selectedPin.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setSelectedPin(null)}
-                className="absolute top-3 right-3 w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center active:scale-95"
-                aria-label="Zamknij"
-              >
-                <X size={14} className="text-white" />
-              </button>
-            </div>
+        <div 
+          style={{
+            transform: isDragging || dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
+            transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          className="absolute bottom-0 inset-x-0 z-[1020] animate-slide-up bg-white rounded-t-4xl shadow-2xl border-t border-card-border"
+        >
+          {/* Grab bar for dragging down pin details */}
+          <div 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="w-full py-3 flex-shrink-0 cursor-row-resize touch-pan-y"
+          >
+            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
+          </div>
 
-            {/* Content */}
-            <div className="p-5">
+          <div className="px-5 pb-6 pt-1 relative">
+            <button
+              onClick={() => setSelectedPin(null)}
+              className="absolute top-1 right-5 w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center active:scale-95"
+              aria-label="Zamknij"
+            >
+              <X size={14} className="text-graphite-light" />
+            </button>
+
+            <div className="pr-8">
               <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block mb-1.5 ${
                 selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
               }`}>
