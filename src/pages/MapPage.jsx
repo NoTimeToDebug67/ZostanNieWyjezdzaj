@@ -265,7 +265,7 @@ function MapPage() {
   };
 
   return (
-    <div className="relative h-[calc(100vh-172px)] overflow-hidden rounded-t-3xl">
+    <div className="relative flex-1 h-full overflow-hidden rounded-t-3xl pb-16">
       {/* Loading state overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-40 flex flex-col items-center justify-center gap-3">

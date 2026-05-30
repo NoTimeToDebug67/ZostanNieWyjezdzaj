@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight } from 'lucide-react'
 import AIOrb from '../components/AIOrb'
-import userData from '../data/userData'
+import { useAuth } from '../context/AuthContext'
 import { getAssistantSuggestion } from '../utils/assistantEngine'
 
 const cityAnnouncements = [
@@ -50,10 +50,18 @@ const mockNews = [
 ]
 
 function StartPage({ onNavigate }) {
+  const { currentUser } = useAuth()
   const [chatOpen, setChatOpen] = useState(false)
   const [announcementIndex, setAnnouncementIndex] = useState(0)
-  const [suggestion] = useState(() => getAssistantSuggestion())
+  const [suggestion, setSuggestion] = useState(null)
   const sliderRef = useRef(null)
+
+  // Generate suggestion whenever currentUser changes (e.g. points change or event join)
+  useEffect(() => {
+    if (currentUser) {
+      setSuggestion(getAssistantSuggestion(currentUser));
+    }
+  }, [currentUser]);
 
   const nextAnnouncement = () => {
     setAnnouncementIndex((i) => (i + 1) % cityAnnouncements.length)
@@ -64,13 +72,17 @@ function StartPage({ onNavigate }) {
 
   const current = cityAnnouncements[announcementIndex]
 
+  if (!currentUser || !suggestion) {
+    return null; // Don't render until loaded
+  }
+
   return (
-    <div className="px-4 space-y-4">
+    <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Top bar - compact, phone-like */}
       <div className="flex items-center justify-between py-1">
         <div>
           <p className="text-[11px] text-graphite-light">Dzień dobry</p>
-          <h1 className="text-lg font-bold text-graphite leading-tight">{userData.name} 👋</h1>
+          <h1 className="text-lg font-bold text-graphite leading-tight">{currentUser.name} 👋</h1>
         </div>
         <button
           onClick={() => onNavigate('profile')}
@@ -180,7 +192,7 @@ function StartPage({ onNavigate }) {
             
             <div className="bg-soft-bg rounded-2xl p-4 mb-4 space-y-3 border border-card-border shadow-inner">
               <p className="text-[13px] text-graphite font-semibold leading-tight text-forest">
-                Cześć {userData.name}! Oto co dla Ciebie mam:
+                Cześć {currentUser.name}! Oto co dla Ciebie mam:
               </p>
               <p className="text-[13px] text-graphite leading-relaxed">
                 {suggestion.text}
