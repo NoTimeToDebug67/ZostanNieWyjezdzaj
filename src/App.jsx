@@ -68,7 +68,6 @@ function AppContent() {
       )}
 
       {/* Main content */}
-      <main className={activeTab === 'map' ? 'h-[calc(100vh-44px)] overflow-hidden' : 'pb-28 min-h-screen'}>
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {renderPage()}
       </main>
