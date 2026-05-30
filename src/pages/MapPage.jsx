@@ -381,8 +381,8 @@ function MapPage() {
       {error && (
         <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-40 flex flex-col items-center justify-center p-6 text-center gap-3">
           <p className="text-sm font-medium text-red-500">Wystąpił błąd podczas ładowania mapy gmin.</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-forest text-white rounded-xl text-xs font-semibold hover:bg-forest-mid"
           >
             Odśwież stronę
@@ -404,8 +404,8 @@ function MapPage() {
               className="w-full text-xs font-medium text-graphite placeholder-graphite-light bg-transparent border-none outline-none"
             />
             {searchQuery && (
-              <button 
-                onClick={() => { setSearchQuery(''); setSearchSuggestions([]); }} 
+              <button
+                onClick={() => { setSearchQuery(''); setSearchSuggestions([]); }}
                 className="p-0.5 rounded-full hover:bg-gray-100"
                 aria-label="Wyczyść szukanie"
               >
@@ -532,7 +532,7 @@ function MapPage() {
           : sortedGminaEvents.filter(e => e.category === selectedCategory);
 
         return (
-          <div 
+          <div
             style={{
               transform: isDragging || dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
               transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -540,7 +540,7 @@ function MapPage() {
             className="absolute bottom-0 inset-x-0 h-[75%] z-[1020] bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border animate-slide-up"
           >
             {/* Grab bar / drag area */}
-            <div 
+            <div
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -702,15 +702,15 @@ function MapPage() {
 
       {/* Bottom panel - Landmark/Event Pin details */}
       {selectedPin && (
-        <div 
+        <div
           style={{
             transform: isDragging || dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
             transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          className="absolute bottom-0 inset-x-0 z-[1020] animate-slide-up bg-white rounded-t-4xl shadow-2xl border-t border-card-border"
+          className="absolute bottom-0 inset-x-0 h-[55%] z-[1020] animate-slide-up bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border"
         >
           {/* Grab bar for dragging down pin details */}
-          <div 
+          <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -719,81 +719,90 @@ function MapPage() {
             <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
           </div>
 
-          <div className="px-5 pb-6 pt-1 relative">
-            <button
-              onClick={() => setSelectedPin(null)}
-              className="absolute top-1 right-5 w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center active:scale-95"
-              aria-label="Zamknij"
-            >
-              <X size={14} className="text-graphite-light" />
-            </button>
-
-            <div className="pr-8">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block ${
-                  selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
-                }`}>
-                  {selectedPin.type === 'landmark' ? 'Miejsce warte uwagi' : 'Wydarzenie'}
-                </span>
-                <span className="text-[9px] font-bold text-forest bg-forest/10 px-2 py-0.5 rounded-full uppercase tracking-wider inline-block">
-                  {selectedPin.category}
-                </span>
-              </div>
-              <h3 className="text-base font-bold text-graphite mb-1.5 leading-tight">
-                {selectedPin.title}
-              </h3>
-              <p className="text-xs text-graphite-light leading-relaxed mb-4">
-                {selectedPin.description}
-              </p>
-
-              {/* Stats for event */}
-              {selectedPin.type === 'event' && (
-                <div className="flex gap-4 mb-4 text-[10px] text-graphite-light">
-                  <div className="flex items-center gap-1">
-                    <Clock size={11} className="text-graphite-light" /> {selectedPin.event_time}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar size={11} className="text-graphite-light" /> {selectedPin.event_date}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users size={11} className="text-graphite-light" /> {selectedPin.attendees_count} uczestników
-                  </div>
+          {/* Header Info with title and Close button in the first line */}
+          <div className="px-5 pb-3 flex-shrink-0 border-b border-gray-100">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block ${selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
+                    }`}>
+                    {selectedPin.type === 'landmark' ? 'Miejsce warte uwagi' : 'Wydarzenie'}
+                  </span>
+                  <span className="text-[9px] font-bold text-forest bg-forest/10 px-2 py-0.5 rounded-full uppercase tracking-wider inline-block">
+                    {selectedPin.category}
+                  </span>
                 </div>
-              )}
-
-              {selectedPin.type === 'landmark' ? (
-                <button 
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPin.latitude},${selectedPin.longitude}`, '_blank');
-                  }}
-                  className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
-                >
-                  <Navigation size={14} />
-                  Nawiguj do miejsca
-                </button>
-              ) : (
-                (() => {
-                  const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === selectedPin.id.toString());
-                  return (
-                    <button 
-                      onClick={async () => {
-                        await toggleJoinEvent(selectedPin);
-                        const updated = events.find(e => e.id === selectedPin.id);
-                        if (updated) setSelectedPin(updated);
-                      }}
-                      className={`w-full py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                        isJoined
-                          ? 'bg-forest/10 text-forest hover:bg-forest/20'
-                          : 'gradient-primary text-white hover:opacity-95 active:scale-[0.98]'
-                      }`}
-                    >
-                      <Users size={14} />
-                      {isJoined ? 'Zrezygnuj z udziału' : 'Zapisz się na wydarzenie'}
-                    </button>
-                  );
-                })()
-              )}
+                <h3 className="text-base font-bold text-graphite leading-tight break-words">
+                  {selectedPin.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedPin(null)}
+                className="w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center active:scale-95 flex-shrink-0"
+                aria-label="Zamknij"
+              >
+                <X size={14} className="text-graphite-light" />
+              </button>
             </div>
+          </div>
+
+          {/* Stats for event (Fixed) */}
+          {selectedPin.type === 'event' && (
+            <div className="px-5 py-3 flex-shrink-0 bg-soft-bg/30 border-b border-gray-100">
+              <div className="flex flex-wrap gap-4 text-[10px] text-graphite-light">
+                <div className="flex items-center gap-1">
+                  <Clock size={11} className="text-graphite-light" /> {selectedPin.event_time}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar size={11} className="text-graphite-light" /> {selectedPin.event_date}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users size={11} className="text-graphite-light" /> {selectedPin.attendees_count} uczestników
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scrollable Description Container */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 scrollbar-hide border-b border-gray-100 bg-soft-bg/5">
+            <p className="text-xs text-graphite-light leading-relaxed break-words whitespace-pre-line">
+              {selectedPin.description}
+            </p>
+          </div>
+
+          {/* Fixed Footer Action Button */}
+          <div className="px-5 pt-4 pb-24 flex-shrink-0 bg-white border-t border-gray-100">
+            {selectedPin.type === 'landmark' ? (
+              <button
+                onClick={() => {
+                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPin.latitude},${selectedPin.longitude}`, '_blank');
+                }}
+                className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
+              >
+                <Navigation size={14} />
+                Nawiguj do miejsca
+              </button>
+            ) : (
+              (() => {
+                const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === selectedPin.id.toString());
+                return (
+                  <button
+                    onClick={async () => {
+                      await toggleJoinEvent(selectedPin);
+                      const updated = events.find(e => e.id === selectedPin.id);
+                      if (updated) setSelectedPin(updated);
+                    }}
+                    className={`w-full py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${isJoined
+                      ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                      : 'gradient-primary text-white hover:opacity-95 active:scale-[0.98]'
+                      }`}
+                  >
+                    <Users size={14} />
+                    {isJoined ? 'Zrezygnuj z udziału' : 'Zapisz się na wydarzenie'}
+                  </button>
+                );
+              })()
+            )}
           </div>
         </div>
       )}
