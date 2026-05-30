@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight } from 'lucide-react'
+import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Wrench, MapPin } from 'lucide-react'
 import AIOrb from '../components/AIOrb'
 import { useAuth } from '../context/AuthContext'
 import { getAssistantSuggestion } from '../utils/assistantEngine'
@@ -173,6 +173,48 @@ function StartPage({ onNavigate }) {
           ))}
         </div>
       </div>
+
+      {/* Zgłoszenia społeczności */}
+      <section>
+        <div className="flex items-center justify-between mb-2.5">
+          <h2 className="text-sm font-bold text-graphite">Zgłoszenia w okolicy</h2>
+          <span className="text-[10px] text-graphite-light bg-soft-bg px-2 py-0.5 rounded-full">Uważaj!</span>
+        </div>
+        <div className="space-y-2">
+          {[
+            { id: 1, title: 'Dziura w jezdni', location: 'ul. Kościelna, przy sklepie', author: 'Jan K.', time: '2 godz. temu', status: 'active', description: 'Duża dziura po prawej stronie drogi jadąc od rynku. Łatwo wjechać po zmroku.' },
+            { id: 2, title: 'Połamane drzewo na chodniku', location: 'Park miejski, wejście od ul. Szkolnej', author: 'Maria N.', time: '5 godz. temu', status: 'active', description: 'Konar spadł po wczorajszej wichurze. Blokuje połowę chodnika, trzeba schodzić na jezdnię.' },
+            { id: 3, title: 'Niedziałająca latarnia', location: 'ul. Zamieście 14', author: 'Piotr W.', time: '1 dzień temu', status: 'reported', description: 'Latarnia nie świeci od tygodnia. Odcinek drogi kompletnie ciemny wieczorami.' },
+          ].map((report) => {
+            const isActive = report.status === 'active'
+            return (
+              <details key={report.id} className="card-base overflow-hidden group">
+                <summary className="p-3 flex items-center gap-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-red-50' : 'bg-orange-50'}`}>
+                    <AlertCircle size={14} className={isActive ? 'text-red-500' : 'text-warm-orange'} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-graphite leading-tight">{report.title}</p>
+                    <p className="text-[9px] text-graphite-light mt-0.5 flex items-center gap-1">
+                      <MapPin size={8} />{report.location}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-warm-orange'}`}>
+                      {isActive ? 'Aktywne' : 'Zgłoszone'}
+                    </span>
+                    <span className="text-[8px] text-gray-400">{report.time}</span>
+                  </div>
+                </summary>
+                <div className="px-3 pb-3 pt-1 border-t border-card-border">
+                  <p className="text-[11px] text-graphite-light leading-relaxed">{report.description}</p>
+                  <p className="text-[9px] text-graphite-light mt-2">Zgłosił/a: <span className="font-semibold text-graphite">{report.author}</span></p>
+                </div>
+              </details>
+            )
+          })}
+        </div>
+      </section>
 
       {/* Chat Modal */}
       {chatOpen && (
