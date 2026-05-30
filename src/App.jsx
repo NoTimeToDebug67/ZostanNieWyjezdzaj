@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import BottomNavigation from './components/BottomNavigation'
 import FAB from './components/FAB'
 import StartPage from './pages/StartPage'
@@ -14,6 +14,10 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('start')
   const [fabOpen, setFabOpen] = useState(false)
 
+  // Reset window scroll to top when changing tabs to prevent viewport offsets on non-scrollable pages like MapPage
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
   // Redirect to login if user session is not available
   if (!currentUser) {
     return <LoginPage />
