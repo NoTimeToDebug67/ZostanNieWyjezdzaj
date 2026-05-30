@@ -141,7 +141,7 @@ function MapPage() {
 
   // Load municipalities GeoJSON
   useEffect(() => {
-    fetch('/gminy-wgs84.json')
+    fetch(`${import.meta.env.BASE_URL}gminy-wgs84.json`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to load gminy.json');
