@@ -40,8 +40,9 @@ export function AuthProvider({ children }) {
 
   // --- SUPABASE SESSION LISTENER & LOADER ---
   useEffect(() => {
-    // Initialize mock events in localStorage if they don't exist
-    if (!localStorage.getItem('tymbark_events')) {
+    // Initialize mock events in localStorage if they don't exist or are outdated
+    const stored = localStorage.getItem('tymbark_events');
+    if (!stored || JSON.parse(stored).length < 100) {
       localStorage.setItem('tymbark_events', JSON.stringify(mockEvents));
     }
 
