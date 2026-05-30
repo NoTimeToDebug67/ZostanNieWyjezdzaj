@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import BottomNavigation from './components/BottomNavigation'
 import FAB from './components/FAB'
 import ReportDefectModal from './components/ReportDefectModal'
+import AIChatModal from './components/AIChatModal'
 import StartPage from './pages/StartPage'
 import MapPage from './pages/MapPage'
 import CommunityPage from './pages/CommunityPage'
@@ -16,6 +17,7 @@ function AppContent() {
   const [fabOpen, setFabOpen] = useState(false)
   const [showCommunityAddModal, setShowCommunityAddModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [showAIChatModal, setShowAIChatModal] = useState(false)
 
   const handleFABAction = (actionId) => {
     if (actionId === 'initiative') {
@@ -24,6 +26,9 @@ function AppContent() {
       setFabOpen(false)
     } else if (actionId === 'report') {
       setShowReportModal(true)
+      setFabOpen(false)
+    } else if (actionId === 'ask-ai') {
+      setShowAIChatModal(true)
       setFabOpen(false)
     }
   }
@@ -104,6 +109,12 @@ function AppContent() {
         onClose={() => setShowReportModal(false)}
       />
 
+      {/* Tymbark AI Assistant Chatbot Modal */}
+      <AIChatModal
+        isOpen={showAIChatModal}
+        onClose={() => setShowAIChatModal(false)}
+      />
+
       {/* Bottom Navigation */}
       <BottomNavigation
         activeTab={activeTab}
@@ -112,6 +123,7 @@ function AppContent() {
           setFabOpen(false);
           setShowCommunityAddModal(false);
           setShowReportModal(false);
+          setShowAIChatModal(false);
         }}
       />
     </div>
