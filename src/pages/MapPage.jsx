@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Users, MapPin, X, Layers, Search, Loader2, Compass, Clock, Calendar } from 'lucide-react'
+import { Navigation, Users, MapPin, X, Layers, Search, Loader2, Compass } from 'lucide-react'
 import { MapContainer, TileLayer, GeoJSON, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -15,6 +16,11 @@ const mockPins = [
     type: 'landmark',
     gmina: 'Tymbark',
     coords: [49.719, 20.298],
+    id: 1,
+    title: 'Kościół pw. św. Michała Archanioła',
+    description: 'Zabytkowy kościół z XVII wieku – perła drewnianej architektury sakralnej Małopolski.',
+    type: 'landmark',
+    coords: [49.719, 20.298], // Close to Tymbark center
     image: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400&h=200&fit=crop',
     action: 'Nawiguj',
   },
@@ -60,6 +66,15 @@ const mockEvents = [
     description: 'Sobota, 14:00. Gry, muzyka na żywo i wspólne grillowanie dla wszystkich mieszkańców.'
   }
 ];
+    id: 2,
+    title: 'Piknik sąsiedzki w parku',
+    description: 'Sobota, 14:00. Gry, muzyka na żywo i wspólne grillowanie dla wszystkich mieszkańców.',
+    type: 'event',
+    coords: [49.734, 20.315], // Inside Tymbark
+    image: 'https://images.unsplash.com/photo-1529543544006-1bd3f5ba0c2a?w=400&h=200&fit=crop',
+    action: 'Dołącz',
+  },
+]
 
 // Mapping JPT_KOD_JE codes to Powiat names in Małopolska
 const getPowiatName = (code) => {
@@ -112,6 +127,7 @@ const createCustomMarker = (type) => {
 function MapController({ bounds, center }) {
   const map = useMap();
 
+  
   useEffect(() => {
     if (bounds) {
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13, animate: true, duration: 0.8 });
@@ -193,6 +209,15 @@ function MapPage() {
   const [mapCenter, setMapCenter] = useState(TYMBARK_COORDS)
   const [mapBounds, setMapBounds] = useState(null)
 
+  
+  // Selection states
+  const [selectedGmina, setSelectedGmina] = useState(null)
+  const [selectedPin, setSelectedPin] = useState(null)
+  
+  // Navigation trigger states
+  const [mapCenter, setMapCenter] = useState(TYMBARK_COORDS)
+  const [mapBounds, setMapBounds] = useState(null)
+  
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
   const [searchSuggestions, setSearchSuggestions] = useState([])
@@ -200,6 +225,7 @@ function MapPage() {
   // Load municipalities GeoJSON
   useEffect(() => {
     fetch('/gminy-wgs84.json')
+    fetch(`${import.meta.env.BASE_URL}gminy-wgs84.json`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to load gminy.json');
@@ -240,6 +266,10 @@ function MapPage() {
     setPriorityEventId(null);
     setSelectedGmina(feature);
 
+    
+    setSelectedPin(null);
+    setSelectedGmina(feature);
+    
     // Zoom to clicked gmina bounds
     if (map) {
       const tempLayer = L.geoJSON(feature);
@@ -253,6 +283,7 @@ function MapPage() {
     const isSelected = selectedGmina && selectedGmina.properties.JPT_NAZWA_ === feature.properties.JPT_NAZWA_;
     const isSatellite = mapLayer === 'satellite';
 
+    
     if (isSelected) {
       return {
         fillColor: isSatellite ? '#10B981' : '#52B788', // Brighter emerald on satellite imagery
@@ -269,6 +300,13 @@ function MapPage() {
       color: isSatellite ? '#86EFAC' : '#081C15', // Darker forest green vs brighter mint green on satellite
       weight: 1.5,
       opacity: isSatellite ? 0.7 : 0.6,
+    
+    return {
+      fillColor: isSatellite ? '#047857' : '#2D6A4F',
+      fillOpacity: isSatellite ? 0.08 : 0.06,
+      color: isSatellite ? '#A7F3D0' : '#1B4332', // Light mint vs Forest border
+      weight: 1.2,
+      opacity: isSatellite ? 0.5 : 0.35,
       dashArray: '3'
     };
   };
@@ -303,6 +341,9 @@ function MapPage() {
         setPriorityEventId(null);
         setSelectedGmina(feature);
 
+        setSelectedPin(null);
+        setSelectedGmina(feature);
+        
         // Zoom/pan map to feature bounds
         const bounds = e.target.getBounds();
         setMapBounds(bounds);
@@ -324,6 +365,7 @@ function MapPage() {
 
   return (
     <div className="relative w-full h-full overflow-hidden rounded-t-3xl z-10 bg-soft-bg">
+    <div className="relative flex-1 h-full overflow-hidden rounded-t-3xl pb-16">
       {/* Loading state overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-40 flex flex-col items-center justify-center gap-3">
@@ -338,6 +380,8 @@ function MapPage() {
           <p className="text-sm font-medium text-red-500">Wystąpił błąd podczas ładowania mapy gmin.</p>
           <button
             onClick={() => window.location.reload()}
+          <button 
+            onClick={() => window.location.reload()} 
             className="px-4 py-2 bg-forest text-white rounded-xl text-xs font-semibold hover:bg-forest-mid"
           >
             Odśwież stronę
@@ -347,6 +391,7 @@ function MapPage() {
 
       {/* Top controls - Search & Layer toggle */}
       <div className="absolute top-4 inset-x-4 z-[1010] flex gap-2 pointer-events-none">
+      <div className="absolute top-4 inset-x-4 z-20 flex gap-2 pointer-events-none">
         {/* Search bar inside mobile container */}
         <div className="flex-1 relative pointer-events-auto">
           <div className="flex items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-glass border border-card-border px-3.5 py-2.5">
@@ -361,6 +406,8 @@ function MapPage() {
             {searchQuery && (
               <button
                 onClick={() => { setSearchQuery(''); setSearchSuggestions([]); }}
+              <button 
+                onClick={() => { setSearchQuery(''); setSearchSuggestions([]); }} 
                 className="p-0.5 rounded-full hover:bg-gray-100"
                 aria-label="Wyczyść szukanie"
               >
@@ -447,6 +494,12 @@ function MapPage() {
                       setMapCenter(pin.coords);
                     }
                   }
+                  setSelectedGmina(null);
+                  setSelectedPin(pin);
+                  
+                  // Pan map to pin center
+                  setMapBounds(null);
+                  setMapCenter(pin.coords);
                 }
               }}
             />
@@ -460,6 +513,7 @@ function MapPage() {
           onClick={() => {
             setSelectedGmina(null);
             setPriorityEventId(null);
+            setSelectedPin(null);
             setMapBounds(null);
             setMapCenter(TYMBARK_COORDS);
             if (map) {
@@ -467,6 +521,7 @@ function MapPage() {
             }
           }}
           className="absolute right-4 bottom-24 z-[1010] w-10 h-10 bg-white/95 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center border border-card-border hover:bg-white active:scale-95 transition-transform"
+          className="absolute right-4 bottom-6 z-20 w-10 h-10 bg-white/95 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center border border-card-border hover:bg-white active:scale-95 transition-transform"
           title="Centruj na Tymbark"
         >
           <Compass size={18} className="text-forest animate-pulse-soft" />
@@ -502,6 +557,19 @@ function MapPage() {
                 <div>
                   <h3 className="text-base font-bold text-graphite leading-tight">
                     Gmina {name}
+      {/* Bottom panel - Gmina details */}
+      {selectedGmina && (
+        <div className="absolute bottom-0 inset-x-0 z-30 animate-slide-up">
+          <div className="bg-white rounded-t-4xl shadow-2xl overflow-hidden border-t border-card-border">
+            {/* Grab bar */}
+            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto my-3" />
+            
+            {/* Content */}
+            <div className="px-5 pb-6">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="text-base font-bold text-graphite leading-tight">
+                    Gmina {selectedGmina.properties.JPT_NAZWA_}
                   </h3>
                   <p className="text-xs font-semibold text-forest uppercase tracking-wider">
                     {getPowiatName(selectedGmina.properties.JPT_KOD_JE)}
@@ -509,6 +577,7 @@ function MapPage() {
                 </div>
                 <button
                   onClick={() => { setSelectedGmina(null); setPriorityEventId(null); }}
+                  onClick={() => setSelectedGmina(null)}
                   className="w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center active:scale-95"
                   aria-label="Zamknij"
                 >
@@ -634,6 +703,84 @@ function MapPage() {
           </div>
         );
       })()}
+              <div className="grid grid-cols-2 gap-3.5 mb-4">
+                <div className="bg-soft-bg rounded-2xl p-3 border border-card-border">
+                  <span className="text-[10px] font-medium text-graphite-light uppercase tracking-wider block mb-0.5">Województwo</span>
+                  <span className="text-xs font-bold text-graphite leading-tight">Małopolskie</span>
+                </div>
+                <div className="bg-soft-bg rounded-2xl p-3 border border-card-border">
+                  <span className="text-[10px] font-medium text-graphite-light uppercase tracking-wider block mb-0.5">Powierzchnia</span>
+                  <span className="text-xs font-bold text-graphite leading-tight">
+                    {(parseFloat(selectedGmina.properties.JPT_POWIER) / 100).toFixed(2)} km²
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-graphite-light leading-relaxed mb-4">
+                Malowniczy region położony w województwie małopolskim. Posiada unikalne walory przyrodnicze, krajobrazowe oraz bogate dziedzictwo historyczne i turystyczne.
+              </p>
+
+              <button 
+                onClick={() => {
+                  alert(`Odkrywanie atrakcji w Gminie ${selectedGmina.properties.JPT_NAZWA_}`);
+                }}
+                className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 hover:opacity-95 transition-opacity active:scale-[0.98]"
+              >
+                <Compass size={14} />
+                Odkryj lokalne atrakcje
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom panel - Landmark/Event Pin details */}
+      {selectedPin && (
+        <div className="absolute bottom-0 inset-x-0 z-30 animate-slide-up">
+          <div className="bg-white rounded-t-4xl shadow-2xl overflow-hidden border-t border-card-border">
+            {/* Image header */}
+            <div className="relative h-36">
+              <img
+                src={selectedPin.image}
+                alt={selectedPin.title}
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() => setSelectedPin(null)}
+                className="absolute top-3 right-3 w-8 h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center active:scale-95"
+                aria-label="Zamknij"
+              >
+                <X size={14} className="text-white" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5">
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block mb-1.5 ${
+                selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
+              }`}>
+                {selectedPin.type === 'landmark' ? 'Miejsce warte uwagi' : 'Wydarzenie'}
+              </span>
+              <h3 className="text-base font-bold text-graphite mb-1.5 leading-tight">
+                {selectedPin.title}
+              </h3>
+              <p className="text-xs text-graphite-light leading-relaxed mb-4">
+                {selectedPin.description}
+              </p>
+
+              <button 
+                onClick={() => {
+                  alert(`${selectedPin.action} - ${selectedPin.title}`);
+                }}
+                className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
+              >
+                {selectedPin.action === 'Nawiguj' ? <Navigation size={14} /> : <Users size={14} />}
+                {selectedPin.action}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

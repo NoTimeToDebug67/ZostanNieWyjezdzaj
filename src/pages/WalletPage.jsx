@@ -1,44 +1,20 @@
 import React, { useState } from 'react'
 import { QrCode, Trophy, Star, Gift, X } from 'lucide-react'
-
-const rewards = [
-  {
-    id: 1,
-    title: 'Piekarnia u Kasi',
-    discount: '-15%',
-    description: 'Na wszystkie wypieki',
-    validUntil: '31.12.2026',
-    emoji: '🥐',
-    code: 'TYM-PIEK-2026',
-  },
-  {
-    id: 2,
-    title: 'Restauracja Pod Lipą',
-    discount: '-10%',
-    description: 'Na obiady w tygodniu',
-    validUntil: '28.02.2027',
-    emoji: '🍽️',
-    code: 'TYM-REST-2027',
-  },
-  {
-    id: 3,
-    title: 'Sklep Ogrodniczy',
-    discount: '-20%',
-    description: 'Na nasiona i sadzonki',
-    validUntil: '15.01.2027',
-    emoji: '🌱',
-    code: 'TYM-OGRD-2027',
-  },
-]
+import { useAuth } from '../context/AuthContext'
 
 function WalletPage() {
+  const { currentUser } = useAuth()
   const [selectedReward, setSelectedReward] = useState(null)
-  const points = 340
-  const nextReward = 500
+
+  if (!currentUser) return null
+
+  const points = currentUser.points
+  const nextReward = currentUser.nextRewardThreshold
   const progress = Math.round((points / nextReward) * 100)
+  const rewards = currentUser.rewards
 
   return (
-    <div className="px-4 space-y-5">
+    <div className="px-4 space-y-5 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Portfel</h1>
@@ -89,15 +65,15 @@ function WalletPage() {
         {/* Stats row */}
         <div className="flex divide-x divide-card-border">
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-forest">7</span>
+            <span className="text-sm font-bold text-forest">{currentUser.stats.reports}</span>
             <p className="text-[9px] text-graphite-light">Zgłoszeń</p>
           </div>
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-warm-orange">3</span>
+            <span className="text-sm font-bold text-warm-orange">{currentUser.stats.initiatives}</span>
             <p className="text-[9px] text-graphite-light">Inicjatyw</p>
           </div>
           <div className="flex-1 py-3 text-center">
-            <span className="text-sm font-bold text-mint">12</span>
+            <span className="text-sm font-bold text-mint">{currentUser.stats.votes}</span>
             <p className="text-[9px] text-graphite-light">Głosów</p>
           </div>
         </div>
@@ -129,22 +105,28 @@ function WalletPage() {
         </div>
 
         <div className="space-y-2">
-          {rewards.map((reward) => (
-            <button
-              key={reward.id}
-              onClick={() => setSelectedReward(reward)}
-              className="w-full card-base p-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
-            >
-              <div className="w-11 h-11 rounded-xl bg-soft-bg flex items-center justify-center text-xl flex-shrink-0">
-                {reward.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[12px] font-semibold text-graphite">{reward.title}</h3>
-                <p className="text-[10px] text-graphite-light">{reward.description}</p>
-              </div>
-              <span className="text-sm font-bold text-forest">{reward.discount}</span>
-            </button>
-          ))}
+          {rewards.map((reward) => {
+            const isExpiringSoon = (reward.validUntil.getTime() - Date.now()) < 5 * 24 * 60 * 60 * 1000;
+            return (
+              <button
+                key={reward.id}
+                onClick={() => setSelectedReward(reward)}
+                className="w-full card-base p-3.5 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+              >
+                <div className="w-11 h-11 rounded-xl bg-soft-bg flex items-center justify-center text-xl flex-shrink-0">
+                  {reward.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[12px] font-semibold text-graphite">{reward.title}</h3>
+                  <p className="text-[10px] text-graphite-light">{reward.description}</p>
+                  <p className={`text-[9px] font-medium mt-0.5 ${isExpiringSoon ? 'text-red-500' : 'text-gray-400'}`}>
+                    Ważne do: {reward.validUntil.toLocaleDateString('pl-PL')}
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-forest">{reward.discount}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -171,7 +153,7 @@ function WalletPage() {
               <QrCode size={48} className="text-graphite/20" />
             </div>
             <p className="text-[10px] text-graphite-light mt-2">Pokaż przy kasie</p>
-            <p className="text-[9px] text-gray-400 mt-1 font-mono">{selectedReward.code}</p>
+            <p className="text-[9px] text-gray-400 mt-1 font-mono">{selectedReward.id === 'r1' ? 'TYM-PIEK-2026' : selectedReward.id === 'r2' ? 'TYM-REST-2027' : 'TYM-OGRD-2027'}</p>
           </div>
         </div>
       )}

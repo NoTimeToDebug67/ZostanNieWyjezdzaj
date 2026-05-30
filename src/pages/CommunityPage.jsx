@@ -98,7 +98,7 @@ function CommunityPage() {
     : upcomingEvents
 
   return (
-    <div className="px-4 space-y-5">
+    <div className="px-4 space-y-5 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Społeczność</h1>

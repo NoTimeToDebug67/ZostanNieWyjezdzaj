@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight } from 'lucide-react'
 import AIOrb from '../components/AIOrb'
+import { useAuth } from '../context/AuthContext'
+import { getAssistantSuggestion } from '../utils/assistantEngine'
 
 const cityAnnouncements = [
   {
@@ -48,9 +50,18 @@ const mockNews = [
 ]
 
 function StartPage({ onNavigate }) {
+  const { currentUser } = useAuth()
   const [chatOpen, setChatOpen] = useState(false)
   const [announcementIndex, setAnnouncementIndex] = useState(0)
+  const [suggestion, setSuggestion] = useState(null)
   const sliderRef = useRef(null)
+
+  // Generate suggestion whenever currentUser changes (e.g. points change or event join)
+  useEffect(() => {
+    if (currentUser) {
+      setSuggestion(getAssistantSuggestion(currentUser));
+    }
+  }, [currentUser]);
 
   const nextAnnouncement = () => {
     setAnnouncementIndex((i) => (i + 1) % cityAnnouncements.length)
@@ -61,13 +72,17 @@ function StartPage({ onNavigate }) {
 
   const current = cityAnnouncements[announcementIndex]
 
+  if (!currentUser || !suggestion) {
+    return null; // Don't render until loaded
+  }
+
   return (
-    <div className="px-4 space-y-4">
+    <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Top bar - compact, phone-like */}
       <div className="flex items-center justify-between py-1">
         <div>
           <p className="text-[11px] text-graphite-light">Dzień dobry</p>
-          <h1 className="text-lg font-bold text-graphite leading-tight">Aniu 👋</h1>
+          <h1 className="text-lg font-bold text-graphite leading-tight">{currentUser.name} 👋</h1>
         </div>
         <button
           onClick={() => onNavigate('profile')}
@@ -117,7 +132,7 @@ function StartPage({ onNavigate }) {
 
       {/* AI Orb */}
       <AIOrb
-        message="W Twoim sołectwie: remont drogi do Podłopienia i zbiórka darów w remizie OSP. Chcesz wiedzieć więcej?"
+        message={suggestion.text}
         onTap={() => setChatOpen(true)}
       />
 
@@ -174,18 +189,36 @@ function StartPage({ onNavigate }) {
               </div>
               <span className="text-sm font-semibold text-graphite">Asystent Tymbark</span>
             </div>
-            <div className="bg-soft-bg rounded-2xl p-3.5 mb-4">
-              <p className="text-[13px] text-graphite leading-relaxed">
-                Hej! Mogę pomóc znaleźć informacje, zgłosić usterkę głosem, albo odpowiedzieć na pytania o gminie.
+            
+            <div className="bg-soft-bg rounded-2xl p-4 mb-4 space-y-3 border border-card-border shadow-inner">
+              <p className="text-[13px] text-graphite font-semibold leading-tight text-forest">
+                Cześć {currentUser.name}! Oto co dla Ciebie mam:
               </p>
+              <p className="text-[13px] text-graphite leading-relaxed">
+                {suggestion.text}
+              </p>
+              <button
+                onClick={() => {
+                  setChatOpen(false)
+                  onNavigate(suggestion.actionTab)
+                }}
+                className="w-full py-3 bg-forest text-white rounded-xl text-xs font-bold hover:bg-forest-mid active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-forest/10"
+              >
+                {suggestion.type === 'event' && 'Zobacz wydarzenie na mapie 🗺️'}
+                {suggestion.type === 'reward_expiry' && 'Otwórz Portfel i odbierz zniżkę 🥐'}
+                {suggestion.type === 'points' && 'Sprawdź swoje punkty w Portfelu 🎁'}
+                {suggestion.type === 'community' && 'Przejdź do tablicy społeczności 👥'}
+                {suggestion.type === 'map' && 'Przejdź do interaktywnej mapy 🗺️'}
+              </button>
             </div>
+
             <div className="flex gap-2">
               <button className="w-9 h-9 rounded-xl bg-forest/10 flex items-center justify-center" aria-label="Nagraj głos">
                 <Mic size={16} className="text-forest" />
               </button>
               <input
                 type="text"
-                placeholder="Napisz..."
+                placeholder="Napisz do asystenta..."
                 className="flex-1 px-3.5 py-2 bg-soft-bg rounded-xl text-sm outline-none focus:ring-2 focus:ring-forest/20 border border-card-border"
               />
               <button className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center" aria-label="Wyślij">

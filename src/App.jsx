@@ -6,8 +6,11 @@ import MapPage from './pages/MapPage'
 import CommunityPage from './pages/CommunityPage'
 import WalletPage from './pages/WalletPage'
 import ProfilePage from './pages/ProfilePage'
+import LoginPage from './pages/LoginPage'
+import { AuthProvider, useAuth } from './context/AuthContext'
 
-function App() {
+function AppContent() {
+  const { currentUser } = useAuth()
   const [activeTab, setActiveTab] = useState('start')
   const [fabOpen, setFabOpen] = useState(false)
 
@@ -15,6 +18,10 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
+  // Redirect to login if user session is not available
+  if (!currentUser) {
+    return <LoginPage />
+  }
 
   const renderPage = () => {
     switch (activeTab) {
@@ -34,16 +41,16 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen max-w-md mx-auto bg-soft-bg overflow-hidden border-x border-gray-100 shadow-2xl">
+    <div className="relative flex-1 flex flex-col h-full overflow-hidden bg-soft-bg">
       {/* Status bar simulation */}
-      <div className="sticky top-0 z-50 h-11 bg-soft-bg flex items-center justify-between px-6">
+      <div className="sticky top-0 z-50 h-11 bg-soft-bg flex items-center justify-between px-6 flex-shrink-0">
         <span className="text-[11px] font-semibold text-graphite">9:41</span>
         <div className="flex items-center gap-1.5">
           <div className="flex gap-0.5">
-            <div className="w-1 h-2.5 bg-graphite rounded-sm" />
-            <div className="w-1 h-3 bg-graphite rounded-sm" />
-            <div className="w-1 h-3.5 bg-graphite rounded-sm" />
-            <div className="w-1 h-4 bg-graphite rounded-sm" />
+            <div className="w-1.5 h-2 bg-graphite rounded-sm" />
+            <div className="w-1.5 h-2.5 bg-graphite rounded-sm" />
+            <div className="w-1.5 h-3 bg-graphite rounded-sm" />
+            <div className="w-1.5 h-3.5 bg-graphite rounded-sm" />
           </div>
           <div className="w-6 h-3 border border-graphite rounded-sm ml-1 relative">
             <div className="absolute inset-0.5 bg-graphite rounded-[1px]" style={{ width: '70%' }} />
@@ -54,7 +61,7 @@ function App() {
       {/* Overlay when FAB is open */}
       {fabOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
           onClick={() => setFabOpen(false)}
           aria-hidden="true"
         />
@@ -62,6 +69,7 @@ function App() {
 
       {/* Main content */}
       <main className={activeTab === 'map' ? 'h-[calc(100vh-44px)] overflow-hidden' : 'pb-28 min-h-screen'}>
+      <main className="flex-1 flex flex-col overflow-hidden relative">
         {renderPage()}
       </main>
 
@@ -71,6 +79,28 @@ function App() {
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={(tab) => { setActiveTab(tab); setFabOpen(false); }} />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-0 sm:p-8 relative overflow-hidden">
+        {/* Ambient desktop backdrop gradients */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-forest-mid/10 rounded-full blur-3xl pointer-events-none hidden sm:block" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-mint-light/5 rounded-full blur-3xl pointer-events-none hidden sm:block" />
+
+        {/* Physical phone mock frame */}
+        <div className="relative w-full max-w-md h-screen sm:h-[844px] bg-soft-bg sm:rounded-[40px] sm:shadow-[0_0_0_10px_#1e293b,0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
+          {/* Dynamic Island / Notch on desktop */}
+          <div className="hidden sm:flex absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 items-center justify-center pointer-events-none">
+            <div className="w-2.5 h-2.5 bg-[#101010] rounded-full absolute right-4 border border-slate-900" />
+          </div>
+          
+          <AppContent />
+        </div>
+      </div>
+    </AuthProvider>
   )
 }
 
