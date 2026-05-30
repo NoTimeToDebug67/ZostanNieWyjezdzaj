@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import initialUserData from '../data/userData';
 import { supabase } from '../lib/supabaseClient';
+import mockEvents from '../data/mockEvents';
 
 const AuthContext = createContext();
 
@@ -39,6 +40,11 @@ export function AuthProvider({ children }) {
 
   // --- SUPABASE SESSION LISTENER & LOADER ---
   useEffect(() => {
+    // Initialize mock events in localStorage if they don't exist
+    if (!localStorage.getItem('tymbark_events')) {
+      localStorage.setItem('tymbark_events', JSON.stringify(mockEvents));
+    }
+
     if (!isSupabaseActive) {
       // LocalStorage Mock Initialization
       const session = localStorage.getItem('tymbark_session');
@@ -369,6 +375,19 @@ export function AuthProvider({ children }) {
       };
       setCurrentUser(updatedUser);
       setUsers(prev => prev.map(u => u.email === currentUser.email ? updatedUser : u));
+
+      // Increment mock event attendees count
+      const storedEvents = localStorage.getItem('tymbark_events');
+      if (storedEvents) {
+        const parsedEvents = JSON.parse(storedEvents);
+        const updatedEvents = parsedEvents.map(e => {
+          if (e.id.toString() === eventData.id.toString()) {
+            return { ...e, attendees_count: (e.attendees_count || 0) + 1 };
+          }
+          return e;
+        });
+        localStorage.setItem('tymbark_events', JSON.stringify(updatedEvents));
+      }
       return;
     }
 
@@ -386,6 +405,20 @@ export function AuthProvider({ children }) {
         });
 
       if (eventErr) throw eventErr;
+
+      // Increment event attendees count in Supabase
+      const { data: eventRow } = await supabase
+        .from('events')
+        .select('attendees_count')
+        .eq('id', eventData.id.toString())
+        .single();
+      
+      const newCount = (eventRow?.attendees_count || 0) + 1;
+
+      await supabase
+        .from('events')
+        .update({ attendees_count: newCount })
+        .eq('id', eventData.id.toString());
 
       // Add points for signup
       const { error: profileErr } = await supabase
@@ -414,8 +447,86 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // 6. Leave Event
+  const leaveEvent = async (eventId) => {
+    if (!currentUser) return;
+
+    const joined = currentUser.joinedEvents.some(e => e.id.toString() !== eventId.toString());
+    // (Ensure we actually joined it first)
+    const alreadyJoined = currentUser.joinedEvents.some(e => e.id.toString() === eventId.toString());
+    if (!alreadyJoined) return;
+
+    if (!isSupabaseActive) {
+      // Mock leave event
+      const updatedUser = {
+        ...currentUser,
+        points: Math.max(0, currentUser.points - 20),
+        joinedEvents: currentUser.joinedEvents.filter(e => e.id.toString() !== eventId.toString())
+      };
+      setCurrentUser(updatedUser);
+      setUsers(prev => prev.map(u => u.email === currentUser.email ? updatedUser : u));
+
+      // Decrement mock event attendees count
+      const storedEvents = localStorage.getItem('tymbark_events');
+      if (storedEvents) {
+        const parsedEvents = JSON.parse(storedEvents);
+        const updatedEvents = parsedEvents.map(e => {
+          if (e.id.toString() === eventId.toString()) {
+            return { ...e, attendees_count: Math.max(0, (e.attendees_count || 1) - 1) };
+          }
+          return e;
+        });
+        localStorage.setItem('tymbark_events', JSON.stringify(updatedEvents));
+      }
+      return;
+    }
+
+    // Real Supabase Event Unsignup
+    try {
+      // Delete joined_events row
+      const { error: eventErr } = await supabase
+        .from('joined_events')
+        .delete()
+        .eq('user_id', currentUser.id)
+        .eq('event_id', eventId.toString());
+
+      if (eventErr) throw eventErr;
+
+      // Decrement event attendees count in Supabase
+      const { data: eventRow } = await supabase
+        .from('events')
+        .select('attendees_count')
+        .eq('id', eventId.toString())
+        .single();
+      
+      const newCount = Math.max(0, (eventRow?.attendees_count || 1) - 1);
+
+      await supabase
+        .from('events')
+        .update({ attendees_count: newCount })
+        .eq('id', eventId.toString());
+
+      // Deduct points
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .update({ points: Math.max(0, currentUser.points - 20) })
+        .eq('id', currentUser.id);
+
+      if (profileErr) throw profileErr;
+
+      // Update state locally
+      setCurrentUser(prev => ({
+        ...prev,
+        points: Math.max(0, prev.points - 20),
+        joinedEvents: prev.joinedEvents.filter(e => e.id.toString() !== eventId.toString())
+      }));
+    } catch (err) {
+      console.error('Błąd podczas wypisywania się z wydarzenia w Supabase:', err.message);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, leaveEvent, isSupabaseActive, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

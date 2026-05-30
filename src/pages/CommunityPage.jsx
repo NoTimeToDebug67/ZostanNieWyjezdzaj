@@ -1,52 +1,8 @@
-import React, { useState } from 'react'
-import { ThumbsUp, Calendar, MapPin, Users, Clock, ArrowRight, Check, Plus, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react'
-
-const upcomingEvents = [
-  {
-    id: 1,
-    title: 'Jarmark Bożonarodzeniowy',
-    date: '22 Gru',
-    day: 'Niedziela',
-    time: '10:00 – 18:00',
-    location: 'Rynek w Tymbarku',
-    attendees: 89,
-    joined: false,
-    image: 'https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=400&h=200&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'Warsztaty garncarskie',
-    date: '15 Gru',
-    day: 'Sobota',
-    time: '14:00 – 17:00',
-    location: 'Świetlica wiejska',
-    attendees: 12,
-    joined: true,
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400&h=200&fit=crop',
-  },
-  {
-    id: 3,
-    title: 'Bieg charytatywny',
-    date: '20 Gru',
-    day: 'Piątek',
-    time: '9:00',
-    location: 'Park miejski',
-    attendees: 45,
-    joined: true,
-    image: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=400&h=200&fit=crop',
-  },
-  {
-    id: 4,
-    title: 'Sesja Rady Gminy',
-    date: '18 Gru',
-    day: 'Środa',
-    time: '16:00',
-    location: 'Urząd Gminy',
-    attendees: 8,
-    joined: false,
-    image: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?w=400&h=200&fit=crop',
-  },
-]
+import React, { useState, useEffect } from 'react'
+import { ThumbsUp, Calendar, MapPin, Users, Clock, ArrowRight, Check, Plus, ChevronDown, ChevronUp, MessageSquare, Loader2 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabaseClient'
+import mockEventsStatic from '../data/mockEvents'
 
 const budgetProjects = [
   {
@@ -82,10 +38,59 @@ const budgetProjects = [
 ]
 
 function CommunityPage() {
+  const { currentUser, joinEvent, leaveEvent, isSupabaseActive } = useAuth();
+
+  const [events, setEvents] = useState([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
   const [votedProjects, setVotedProjects] = useState([])
   const [budgetExpanded, setBudgetExpanded] = useState(false)
   const [expandedProject, setExpandedProject] = useState(null)
   const [calendarFilter, setCalendarFilter] = useState('all') // 'all' | 'mine'
+
+  const fetchEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      if (isSupabaseActive) {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('type', 'event');
+        if (error) throw error;
+        setEvents(data || []);
+      } else {
+        const stored = localStorage.getItem('tymbark_events');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setEvents(parsed.filter(e => e.type === 'event'));
+        } else {
+          localStorage.setItem('tymbark_events', JSON.stringify(mockEventsStatic));
+          setEvents(mockEventsStatic.filter(e => e.type === 'event'));
+        }
+      }
+    } catch (err) {
+      console.error('Błąd wczytywania wydarzeń:', err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [currentUser]); // Refresh when registration state/session updates
+
+  const toggleJoinEvent = async (event) => {
+    if (!currentUser) {
+      alert('Zaloguj się najpierw, aby zapisać się na wydarzenie!');
+      return;
+    }
+    const isJoined = currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString());
+    if (isJoined) {
+      await leaveEvent(event.id);
+    } else {
+      await joinEvent(event);
+    }
+    await fetchEvents();
+  };
 
   const handleVote = (projectId) => {
     if (!votedProjects.includes(projectId)) {
@@ -94,21 +99,21 @@ function CommunityPage() {
   }
 
   const filteredEvents = calendarFilter === 'mine'
-    ? upcomingEvents.filter(e => e.joined)
-    : upcomingEvents
+    ? events.filter(e => currentUser && currentUser.joinedEvents.some(je => je.id.toString() === e.id.toString()))
+    : events;
 
   return (
     <div className="px-4 space-y-5 flex-1 overflow-y-auto pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Społeczność</h1>
-        <p className="text-[11px] text-graphite-light">Tymbark i okolice</p>
+        <p className="text-[11px] text-graphite-light">Tymbark i region Małopolski</p>
       </div>
 
       {/* Calendar / Events */}
       <section>
         <div className="flex items-center justify-between mb-2.5">
-          <h2 className="text-xs font-bold text-graphite uppercase tracking-wider">Kalendarz</h2>
+          <h2 className="text-xs font-bold text-graphite uppercase tracking-wider">Kalendarz wydarzeń</h2>
           <div className="flex bg-soft-bg rounded-lg p-0.5">
             <button
               onClick={() => setCalendarFilter('all')}
@@ -129,45 +134,77 @@ function CommunityPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          {filteredEvents.map((event) => (
-            <div key={event.id} className="card-base p-3 flex items-center gap-3">
-              {/* Date block */}
-              <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
-                event.joined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite'
-              }`}>
-                <span className="text-[10px] font-medium leading-none opacity-70">{event.day.slice(0, 3)}</span>
-                <span className="text-sm font-bold leading-tight">{event.date.split(' ')[0]}</span>
-              </div>
+        {loadingEvents ? (
+          <div className="flex items-center justify-center py-6 gap-2">
+            <Loader2 size={16} className="text-forest animate-spin" />
+            <span className="text-xs text-graphite-light font-medium">Ładowanie wydarzeń...</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => {
+                const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString());
+                return (
+                  <div key={event.id} className="card-base p-3 flex items-center gap-3">
+                    {/* Date block */}
+                    <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
+                      isJoined ? 'bg-forest text-white shadow-sm' : 'bg-soft-bg text-graphite border border-card-border'
+                    }`}>
+                      <span className="text-[9px] font-medium leading-none opacity-80 uppercase">{event.event_day.slice(0, 3)}</span>
+                      <span className="text-xs font-bold leading-tight mt-0.5">{event.event_date.split(' ')[0]}</span>
+                    </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[12px] font-semibold text-graphite leading-tight">{event.title}</h3>
-                <div className="flex items-center gap-2 mt-1 text-[10px] text-graphite-light">
-                  <span className="flex items-center gap-0.5"><Clock size={8} />{event.time}</span>
-                  <span className="flex items-center gap-0.5"><MapPin size={8} />{event.location}</span>
-                </div>
-              </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-[8px] font-bold text-forest bg-forest/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                          {event.category}
+                        </span>
+                        <span className="text-[8px] font-semibold text-graphite-light uppercase">
+                          Gmina {event.gmina}
+                        </span>
+                      </div>
+                      <h3 className="text-[12px] font-bold text-graphite leading-tight line-clamp-1">{event.title}</h3>
+                      <div className="flex items-center gap-2 mt-1 text-[10px] text-graphite-light">
+                        <span className="flex items-center gap-0.5"><Clock size={9} />{event.event_time}</span>
+                        <span className="flex items-center gap-0.5"><MapPin size={9} className="flex-shrink-0" />{event.location_name}</span>
+                      </div>
+                    </div>
 
-              {/* Status */}
-              <div className="flex flex-col items-end gap-1">
-                {event.joined && (
-                  <span className="text-[9px] font-bold text-forest bg-mint-light/30 px-1.5 py-0.5 rounded-full">Zapisano</span>
-                )}
-                <span className="text-[9px] text-graphite-light flex items-center gap-0.5">
-                  <Users size={8} />{event.attendees}
-                </span>
+                    {/* Status & Join Action */}
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className="text-[9px] text-graphite-light flex items-center gap-0.5 font-medium">
+                        <Users size={9} />{event.attendees_count} {(() => { const n = event.attendees_count; const mod10 = n % 10; const mod100 = n % 100; if (n === 1) return 'osoba'; if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'osoby'; return 'osób'; })()}
+                      </span>
+                      <button
+                        onClick={() => toggleJoinEvent(event)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
+                          isJoined
+                            ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                            : 'gradient-primary text-white hover:opacity-95 active:scale-95'
+                        }`}
+                      >
+                        {isJoined ? 'Zrezygnuj' : 'Zapisz się'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="card-base py-8 text-center flex flex-col items-center justify-center gap-2 border-2 border-dashed border-card-border bg-transparent shadow-none">
+                <Calendar size={24} className="text-gray-300 animate-float" />
+                <p className="text-[11px] text-graphite-light font-medium">Brak zaplanowanych wydarzeń</p>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Budget - collapsible panel */}
       <section>
         <button
           onClick={() => setBudgetExpanded(!budgetExpanded)}
-          className="w-full flex items-center justify-between mb-2.5"
+          className="w-full flex items-center justify-between mb-2.5 text-left"
         >
           <h2 className="text-xs font-bold text-graphite uppercase tracking-wider">Budżet obywatelski</h2>
           <div className="flex items-center gap-1.5 text-[11px] text-forest font-semibold">
@@ -187,7 +224,7 @@ function CommunityPage() {
                 <div key={project.id} className="card-base overflow-hidden">
                   <button
                     onClick={() => setExpandedProject(isExpanded ? null : project.id)}
-                    className="w-full p-3.5 text-left"
+                    className="w-full p-3.5 text-left outline-none"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-[12px] font-semibold text-graphite">{project.title}</h3>

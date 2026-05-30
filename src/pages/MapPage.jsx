@@ -3,59 +3,12 @@ import { Users, MapPin, X, Layers, Search, Loader2, Compass, Clock, Calendar, Na
 import { MapContainer, TileLayer, GeoJSON, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabaseClient'
+import mockEventsStatic from '../data/mockEvents'
 
 // Centroid of Tymbark (powiat limanowski, województwo małopolskie)
 const TYMBARK_COORDS = [49.7294, 20.3118];
-
-const mockPins = [
-  {
-    id: 'pin-1',
-    title: 'Kościół pw. św. Michała Archanioła',
-    description: 'Zabytkowy kościół z XVII wieku – perła drewnianej architektury sakralnej Małopolski.',
-    type: 'landmark',
-    gmina: 'Tymbark',
-    coords: [49.719, 20.298],
-    action: 'Nawiguj',
-  },
-  {
-    id: 'pin-2',
-    title: 'Piknik sąsiedzki w parku',
-    description: 'Sobota, 14:00. Gry, muzyka na żywo i wspólne grillowanie dla wszystkich mieszkańców.',
-    type: 'event',
-    gmina: 'Tymbark',
-    coords: [49.734, 20.315],
-    action: 'Dołącz',
-  },
-];
-
-const mockEvents = [
-  {
-    id: 'pin-1',
-    gmina: 'Tymbark',
-    title: 'Kościół pw. św. Michała Archanioła',
-    category: 'Kultura',
-    date: 'Każda Sobota',
-    day: 'Sobota',
-    time: '18:00',
-    location: 'Tymbark, Rynek',
-    attendees: 120,
-    joined: false,
-    description: 'Zabytkowy kościół z XVII wieku – perła drewnianej architektury sakralnej Małopolski.'
-  },
-  {
-    id: 'pin-2',
-    gmina: 'Tymbark',
-    title: 'Piknik sąsiedzki w parku',
-    category: 'Kultura',
-    date: 'Dziś',
-    day: 'Sobota',
-    time: '14:00',
-    location: 'Park miejski w Tymbarku',
-    attendees: 56,
-    joined: false,
-    description: 'Sobota, 14:00. Gry, muzyka na żywo i wspólne grillowanie dla wszystkich mieszkańców.'
-  }
-];
 
 // Mapping JPT_KOD_JE codes to Powiat names in Małopolska
 const getPowiatName = (code) => {
@@ -83,19 +36,52 @@ const getPowiatName = (code) => {
   }
 }
 
+const getCategoryStyles = (category) => {
+  switch (category) {
+    case 'Kultura':
+      return {
+        color: '#1b4332',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 8.88 9.88 16.24 7.76"/></svg>`
+      };
+    case 'Ekologia':
+      return {
+        color: '#2d6a4f',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="m12 3-10 5 10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>`
+      };
+    case 'Edukacja':
+      return {
+        color: '#6d28d9',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
+      };
+    case 'Rozrywka':
+      return {
+        color: '#ea580c',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+      };
+    case 'Sport':
+      return {
+        color: '#0369a1',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`
+      };
+    default:
+      return {
+        color: '#4b5563',
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
+      };
+  }
+};
+
 // Create custom leaflet marker using Lucide SVGs styled with Tailwind CSS
-const createCustomMarker = (type) => {
-  const iconColor = type === 'landmark' ? '#1B4332' : '#F97316'; // forest or warm-orange
-  const svgContent = type === 'landmark'
-    ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`
-    : `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
+const createCustomMarker = (category, type) => {
+  const styles = getCategoryStyles(category);
+  const shapeClass = type === 'landmark' ? 'rounded-2xl border-2 border-white' : 'rounded-full';
 
   return L.divIcon({
     className: 'custom-leaflet-marker',
     html: `
-      <div class="relative flex items-center justify-center w-10 h-10 rounded-full shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95" style="background-color: ${iconColor};">
-        ${svgContent}
-        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full opacity-35 animate-pulse-soft" style="background-color: ${iconColor};"></div>
+      <div class="relative flex items-center justify-center w-10 h-10 shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95 ${shapeClass}" style="background-color: ${styles.color};">
+        ${styles.svg}
+        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full opacity-35 animate-pulse-soft" style="background-color: ${styles.color};"></div>
       </div>
     `,
     iconSize: [40, 40],
@@ -148,6 +134,8 @@ function MapEvents({ setMap }) {
 }
 
 function MapPage() {
+  const { currentUser, joinEvent, leaveEvent, isSupabaseActive } = useAuth();
+
   const [map, setMap] = useState(null)
   const [mapLayer, setMapLayer] = useState('default')
 
@@ -162,7 +150,8 @@ function MapPage() {
   const [priorityEventId, setPriorityEventId] = useState(null)
 
   // Events state and active category filter
-  const [events, setEvents] = useState(mockEvents)
+  const [events, setEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('Wszystkie')
 
   // Drag to dismiss states
@@ -199,18 +188,48 @@ function MapPage() {
     setSelectedCategory('Wszystkie');
   }, [selectedGmina]);
 
-  const toggleJoinEvent = (eventId) => {
-    setEvents(prevEvents => prevEvents.map(e => {
-      if (e.id === eventId) {
-        const newJoined = !e.joined;
-        return {
-          ...e,
-          joined: newJoined,
-          attendees: newJoined ? e.attendees + 1 : e.attendees - 1
-        };
+  // Fetch events from Supabase or LocalStorage
+  const fetchEvents = async () => {
+    try {
+      setEventsLoading(true);
+      if (isSupabaseActive) {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*');
+        if (error) throw error;
+        setEvents(data || []);
+      } else {
+        const stored = localStorage.getItem('tymbark_events');
+        if (stored) {
+          setEvents(JSON.parse(stored));
+        } else {
+          localStorage.setItem('tymbark_events', JSON.stringify(mockEventsStatic));
+          setEvents(mockEventsStatic);
+        }
       }
-      return e;
-    }));
+    } catch (err) {
+      console.error('Błąd pobierania wydarzeń:', err);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [currentUser]); // Sync and fetch updated counts/status on session changes
+
+  const toggleJoinEvent = async (event) => {
+    if (!currentUser) {
+      alert('Zaloguj się najpierw, aby zapisać się na wydarzenie!');
+      return;
+    }
+    const isJoined = currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString());
+    if (isJoined) {
+      await leaveEvent(event.id);
+    } else {
+      await joinEvent(event);
+    }
+    await fetchEvents();
   };
 
   // Navigation trigger states
@@ -454,19 +473,19 @@ function MapPage() {
             />
           )}
 
-          {/* Landmarks / Events markers */}
-          {mockPins.map(pin => (
+          {/* Dynamic Landmarks / Events markers from DB/fallback */}
+          {events.map(pin => (
             <Marker
               key={pin.id}
-              position={pin.coords}
-              icon={createCustomMarker(pin.type)}
+              position={[pin.latitude, pin.longitude]}
+              icon={createCustomMarker(pin.category, pin.type)}
               eventHandlers={{
                 click: () => {
                   setSelectedGmina(null);
                   setSelectedPin(pin);
                   setPriorityEventId(pin.id);
                   setMapBounds(null);
-                  setMapCenter(pin.coords);
+                  setMapCenter([pin.latitude, pin.longitude]);
                 }
               }}
             />
@@ -553,14 +572,14 @@ function MapPage() {
               {/* Stats row */}
               <div className="flex gap-4 mt-2 text-[10px] text-graphite-light">
                 <div>
-                  Wydarzenia: <span className="font-semibold text-forest">{gminaEvents.length}</span>
+                  Obiekty i wydarzenia: <span className="font-semibold text-forest">{gminaEvents.length}</span>
                 </div>
               </div>
             </div>
 
             {/* Category tabs */}
             <div className="px-5 py-2 flex gap-1.5 overflow-x-auto scrollbar-hide flex-shrink-0 bg-soft-bg/50 border-b border-card-border">
-              {['Wszystkie', 'Recycling', 'Szkolenia', 'Kultura', 'Sport', 'Urzędowe'].map(cat => {
+              {['Wszystkie', 'Kultura', 'Ekologia', 'Edukacja', 'Rozrywka', 'Sport'].map(cat => {
                 const isActive = selectedCategory === cat;
                 const count = cat === 'Wszystkie'
                   ? gminaEvents.length
@@ -589,6 +608,7 @@ function MapPage() {
               {filteredGminaEvents.length > 0 ? (
                 filteredGminaEvents.map(event => {
                   const isHighlighted = priorityEventId && event.id === priorityEventId;
+                  const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString());
                   return (
                     <div
                       key={event.id}
@@ -599,10 +619,10 @@ function MapPage() {
                     >
                       <div className="flex items-center gap-3">
                         {/* Date block */}
-                        <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${event.joined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
+                        <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${isJoined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
                           }`}>
-                          <span className="text-[9px] font-medium leading-none opacity-80 uppercase">{event.day.slice(0, 3)}</span>
-                          <span className="text-xs font-bold leading-tight mt-0.5">{event.date.split(' ')[0]}</span>
+                          <span className="text-[9px] font-medium leading-none opacity-80 uppercase">{event.event_day.slice(0, 3)}</span>
+                          <span className="text-xs font-bold leading-tight mt-0.5">{event.event_date.split(' ')[0]}</span>
                         </div>
 
                         {/* Info */}
@@ -611,7 +631,7 @@ function MapPage() {
                             <span className="text-[8px] font-bold text-forest bg-forest/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                               {event.category}
                             </span>
-                            {event.joined && (
+                            {isJoined && (
                               <span className="text-[8px] font-bold text-forest bg-mint-light/35 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                 Zapisano
                               </span>
@@ -624,9 +644,9 @@ function MapPage() {
                           </div>
                           <h4 className="text-xs font-bold text-graphite leading-snug line-clamp-1">{event.title}</h4>
                           <p className="text-[9px] text-graphite-light mt-0.5 flex items-center gap-1">
-                            <Clock size={10} className="flex-shrink-0 text-graphite-light" /> {event.time}
+                            <Clock size={10} className="flex-shrink-0 text-graphite-light" /> {event.event_time}
                             <span className="text-gray-200">•</span>
-                            <MapPin size={10} className="flex-shrink-0 text-graphite-light" /> {event.location}
+                            <MapPin size={10} className="flex-shrink-0 text-graphite-light" /> {event.location_name}
                           </p>
                         </div>
                       </div>
@@ -640,17 +660,28 @@ function MapPage() {
                       <div className="flex items-center justify-between border-t border-gray-100 pt-2.5 mt-0.5">
                         <span className="text-[9px] font-semibold text-graphite-light flex items-center gap-1">
                           <Users size={11} className="text-graphite-light" />
-                          {event.attendees} {(() => { const n = event.attendees; const mod10 = n % 10; const mod100 = n % 100; if (n === 1) return 'osoba'; if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'osoby'; return 'osób'; })()}
+                          {event.attendees_count} {(() => { const n = event.attendees_count; const mod10 = n % 10; const mod100 = n % 100; if (n === 1) return 'osoba'; if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'osoby'; return 'osób'; })()}
                         </span>
-                        <button
-                          onClick={() => toggleJoinEvent(event.id)}
-                          className={`px-3 py-1 rounded-xl text-[9px] font-bold transition-all ${event.joined
-                            ? 'bg-forest/10 text-forest hover:bg-forest/20'
-                            : 'gradient-primary text-white hover:opacity-95 active:scale-95'
-                            }`}
-                        >
-                          {event.joined ? 'Zrezygnuj' : 'Zapisz się'}
-                        </button>
+                        {event.type === 'event' ? (
+                          <button
+                            onClick={() => toggleJoinEvent(event)}
+                            className={`px-3 py-1 rounded-xl text-[9px] font-bold transition-all ${isJoined
+                              ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                              : 'gradient-primary text-white hover:opacity-95 active:scale-95'
+                              }`}
+                          >
+                            {isJoined ? 'Zrezygnuj' : 'Zapisz się'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`, '_blank');
+                            }}
+                            className="px-3 py-1 bg-soft-bg text-forest hover:bg-gray-100 rounded-xl text-[9px] font-bold transition-all flex items-center gap-1"
+                          >
+                            <Navigation size={10} /> Nawiguj
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -698,11 +729,16 @@ function MapPage() {
             </button>
 
             <div className="pr-8">
-              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block mb-1.5 ${
-                selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
-              }`}>
-                {selectedPin.type === 'landmark' ? 'Miejsce warte uwagi' : 'Wydarzenie'}
-              </span>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full inline-block ${
+                  selectedPin.type === 'landmark' ? 'bg-forest/10 text-forest' : 'bg-warm-orange/10 text-warm-orange'
+                }`}>
+                  {selectedPin.type === 'landmark' ? 'Miejsce warte uwagi' : 'Wydarzenie'}
+                </span>
+                <span className="text-[9px] font-bold text-forest bg-forest/10 px-2 py-0.5 rounded-full uppercase tracking-wider inline-block">
+                  {selectedPin.category}
+                </span>
+              </div>
               <h3 className="text-base font-bold text-graphite mb-1.5 leading-tight">
                 {selectedPin.title}
               </h3>
@@ -710,15 +746,53 @@ function MapPage() {
                 {selectedPin.description}
               </p>
 
-              <button 
-                onClick={() => {
-                  alert(`${selectedPin.action} - ${selectedPin.title}`);
-                }}
-                className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
-              >
-                {selectedPin.action === 'Nawiguj' ? <Navigation size={14} /> : <Users size={14} />}
-                {selectedPin.action}
-              </button>
+              {/* Stats for event */}
+              {selectedPin.type === 'event' && (
+                <div className="flex gap-4 mb-4 text-[10px] text-graphite-light">
+                  <div className="flex items-center gap-1">
+                    <Clock size={11} className="text-graphite-light" /> {selectedPin.event_time}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar size={11} className="text-graphite-light" /> {selectedPin.event_date}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users size={11} className="text-graphite-light" /> {selectedPin.attendees_count} uczestników
+                  </div>
+                </div>
+              )}
+
+              {selectedPin.type === 'landmark' ? (
+                <button 
+                  onClick={() => {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPin.latitude},${selectedPin.longitude}`, '_blank');
+                  }}
+                  className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
+                >
+                  <Navigation size={14} />
+                  Nawiguj do miejsca
+                </button>
+              ) : (
+                (() => {
+                  const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === selectedPin.id.toString());
+                  return (
+                    <button 
+                      onClick={async () => {
+                        await toggleJoinEvent(selectedPin);
+                        const updated = events.find(e => e.id === selectedPin.id);
+                        if (updated) setSelectedPin(updated);
+                      }}
+                      className={`w-full py-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                        isJoined
+                          ? 'bg-forest/10 text-forest hover:bg-forest/20'
+                          : 'gradient-primary text-white hover:opacity-95 active:scale-[0.98]'
+                      }`}
+                    >
+                      <Users size={14} />
+                      {isJoined ? 'Zrezygnuj z udziału' : 'Zapisz się na wydarzenie'}
+                    </button>
+                  );
+                })()
+              )}
             </div>
           </div>
         </div>
