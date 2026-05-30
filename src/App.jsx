@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import BottomNavigation from './components/BottomNavigation'
 import FAB from './components/FAB'
+import ReportDefectModal from './components/ReportDefectModal'
 import StartPage from './pages/StartPage'
 import MapPage from './pages/MapPage'
 import CommunityPage from './pages/CommunityPage'
@@ -14,11 +15,15 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('start')
   const [fabOpen, setFabOpen] = useState(false)
   const [showCommunityAddModal, setShowCommunityAddModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   const handleFABAction = (actionId) => {
     if (actionId === 'initiative') {
       setActiveTab('community')
       setShowCommunityAddModal(true)
+      setFabOpen(false)
+    } else if (actionId === 'report') {
+      setShowReportModal(true)
       setFabOpen(false)
     }
   }
@@ -93,6 +98,12 @@ function AppContent() {
         onAction={handleFABAction}
       />
 
+      {/* Report Defect Modal */}
+      <ReportDefectModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+      />
+
       {/* Bottom Navigation */}
       <BottomNavigation
         activeTab={activeTab}
@@ -100,6 +111,7 @@ function AppContent() {
           setActiveTab(tab);
           setFabOpen(false);
           setShowCommunityAddModal(false);
+          setShowReportModal(false);
         }}
       />
     </div>
