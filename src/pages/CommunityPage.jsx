@@ -897,13 +897,11 @@ function CommunityPage() {
                   <button
                     key={event.id}
                     onClick={() => setSelectedEvent(event)}
-                    className={`w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform ${
-                      isJoined ? 'bg-mint/15 border border-mint/30 shadow-inner-glow' : 'border border-transparent'
-                    }`}
+                    className={`w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform ${isJoined ? 'bg-mint/15 border border-mint/30 shadow-inner-glow' : 'border border-transparent'
+                      }`}
                   >
-                    <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
-                      isJoined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
-                    }`}>
+                    <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${isJoined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
+                      }`}>
                       <span className="text-[8px] font-medium leading-none opacity-80 uppercase">{(event.event_day || '').slice(0, 3)}</span>
                       <span className="text-[11px] font-bold leading-tight mt-0.5">{(event.event_date || '').split(' ')[0]}</span>
                     </div>
@@ -980,32 +978,40 @@ function CommunityPage() {
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl overflow-hidden shadow-2xl animate-slide-up">
+          <div className="relative w-full max-w-md bg-white rounded-t-4xl overflow-hidden shadow-2xl animate-slide-up h-[45%] flex flex-col">
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="absolute top-3 right-3 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center z-10 shadow-sm active:scale-95"
+              aria-label="Zamknij"
+            >
+              <X size={12} className="text-graphite" />
+            </button>
+
             {selectedEvent.image_url && (
-              <div className="relative h-36">
+              <div className="relative h-36 flex-shrink-0">
                 <img src={selectedEvent.image_url} alt={selectedEvent.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
             )}
-            <div className="p-5 relative">
-              <button onClick={() => setSelectedEvent(null)} className="absolute top-3 right-3 w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center" aria-label="Zamknij">
-                <X size={12} className="text-graphite" />
-              </button>
 
-              <h3 className="text-base font-bold text-graphite pr-8">{selectedEvent.title}</h3>
+            {/* Scrollable details */}
+            <div className="flex-1 overflow-y-auto p-5 pb-3 scrollbar-hide">
+              <h3 className="text-base font-bold text-graphite pr-8 break-words leading-snug">{selectedEvent.title}</h3>
               <div className="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-graphite-light">
-                <span className="flex items-center gap-1"><Calendar size={11} />{selectedEvent.event_date}</span>
-                <span className="flex items-center gap-1"><Clock size={11} />{selectedEvent.event_time}</span>
-                <span className="flex items-center gap-1"><MapPin size={11} />{selectedEvent.location_name}</span>
+                <span className="flex items-center gap-1 whitespace-nowrap"><Calendar size={11} />{selectedEvent.event_date}</span>
+                <span className="flex items-center gap-1 whitespace-nowrap"><Clock size={11} />{selectedEvent.event_time}</span>
+                <span className="flex items-center gap-1 break-all"><MapPin size={11} className="flex-shrink-0" />{selectedEvent.location_name}</span>
               </div>
               {selectedEvent.description && (
-                <p className="text-[12px] text-graphite-light mt-3 leading-relaxed">{selectedEvent.description}</p>
+                <p className="text-[12px] text-graphite-light mt-3 leading-relaxed break-words whitespace-pre-line">{selectedEvent.description}</p>
               )}
-              <div className="flex items-center gap-2 mt-2 text-[10px] text-graphite-light">
+              <div className="flex items-center gap-2 mt-3 text-[10px] text-graphite-light">
                 <Users size={11} /> {selectedEvent.attendees_count} uczestników
               </div>
+            </div>
 
-              {/* Action buttons */}
+            {/* Fixed footer action buttons */}
+            <div className="p-5 pt-3 pb-24 border-t border-gray-100 bg-white flex-shrink-0">
               {(() => {
                 const isJoined = canCreateGroup(selectedEvent)
                 const existingGroup = getGroupForEvent(selectedEvent.id)
@@ -1049,7 +1055,7 @@ function CommunityPage() {
                 }
 
                 return (
-                  <div className="mt-4 space-y-2">
+                  <div className="space-y-2">
                     <div className="flex gap-2">
                       {selectedEvent.latitude && selectedEvent.longitude && (
                         <button
@@ -1063,11 +1069,9 @@ function CommunityPage() {
                       )}
                       <button
                         onClick={() => { toggleJoinEvent(selectedEvent); setSelectedEvent(null) }}
-                        className={`py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
-                          selectedEvent.latitude && selectedEvent.longitude ? 'flex-1' : 'w-full'
-                        } ${
-                          isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
-                        }`}
+                        className={`py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${selectedEvent.latitude && selectedEvent.longitude ? 'flex-1' : 'w-full'
+                          } ${isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
+                          }`}
                       >
                         {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
                       </button>
@@ -1106,11 +1110,20 @@ function CommunityPage() {
       {showAddEvent && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAddEvent(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl p-5 pb-7 shadow-2xl animate-slide-up">
-            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-            <h3 className="text-sm font-bold text-graphite mb-4">Nowe wydarzenie lokalne</h3>
+          <div className="relative w-full max-w-md bg-white rounded-t-4xl shadow-2xl animate-slide-up h-[60%] flex flex-col overflow-hidden border-t border-card-border">
+            <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-graphite">Nowe wydarzenie lokalne</h3>
+              <button
+                onClick={() => setShowAddEvent(false)}
+                className="w-7 h-7 bg-soft-bg rounded-full flex items-center justify-center active:scale-95"
+                aria-label="Zamknij"
+              >
+                <X size={12} className="text-graphite" />
+              </button>
+            </div>
 
-            <div className="space-y-3">
+            {/* Scrollable Form fields */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-3 scrollbar-hide">
               <div>
                 <label className="text-[10px] font-semibold text-graphite-light uppercase tracking-wider">Nazwa wydarzenia</label>
                 <input
@@ -1178,13 +1191,16 @@ function CommunityPage() {
               </div>
             </div>
 
-            <button
-              onClick={handleAddEvent}
-              disabled={!newEvent.title || !newEvent.date || !newEvent.location}
-              className="w-full mt-4 py-3 gradient-primary text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform disabled:opacity-40 disabled:pointer-events-none"
-            >
-              <Plus size={14} /> Dodaj wydarzenie
-            </button>
+            {/* Fixed footer action */}
+            <div className="p-5 pt-3 pb-24 border-t border-gray-100 bg-white flex-shrink-0">
+              <button
+                onClick={handleAddEvent}
+                disabled={!newEvent.title || !newEvent.date || !newEvent.location}
+                className="w-full py-3 gradient-primary text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform disabled:opacity-40 disabled:pointer-events-none"
+              >
+                <Plus size={14} /> Dodaj wydarzenie
+              </button>
+            </div>
           </div>
         </div>
       )}
