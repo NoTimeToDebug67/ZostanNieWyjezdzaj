@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { User, Clock, ArrowRight, Mic, Send, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Wrench, MapPin } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Clock, ArrowRight, ChevronLeft, ChevronRight, AlertCircle, MapPin } from 'lucide-react'
 import AIOrb from '../components/AIOrb'
 import { useAuth } from '../context/AuthContext'
 import { getAssistantSuggestion } from '../utils/assistantEngine'
@@ -51,10 +51,8 @@ const mockNews = [
 
 function StartPage({ onNavigate }) {
   const { currentUser } = useAuth()
-  const [chatOpen, setChatOpen] = useState(false)
   const [announcementIndex, setAnnouncementIndex] = useState(0)
   const [suggestion, setSuggestion] = useState(null)
-  const sliderRef = useRef(null)
 
   // Generate suggestion whenever currentUser changes (e.g. points change or event join)
   useEffect(() => {
@@ -130,10 +128,18 @@ function StartPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* AI Orb */}
+      {/* Sołtys AI */}
       <AIOrb
         message={suggestion.text}
-        onTap={() => setChatOpen(true)}
+        actionLabel={
+          suggestion.type === 'event' ? 'Zobacz wydarzenie na mapie' :
+          suggestion.type === 'reward_expiry' ? 'Odbierz zniżkę w Nagrodach' :
+          suggestion.type === 'points' ? 'Sprawdź punkty w Nagrodach' :
+          suggestion.type === 'community' ? 'Przejdź do społeczności' :
+          suggestion.type === 'map' ? 'Otwórz mapę' :
+          'Sprawdź szczegóły'
+        }
+        onAction={() => onNavigate(suggestion.actionTab)}
       />
 
       {/* News */}
@@ -216,60 +222,6 @@ function StartPage({ onNavigate }) {
         </div>
       </section>
 
-      {/* Chat Modal */}
-      {chatOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setChatOpen(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl p-5 pb-7 shadow-2xl animate-slide-up">
-            <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center animate-breathe">
-                <div className="flex gap-0.5">
-                  <div className="w-1 h-1 bg-mint-light rounded-full" />
-                  <div className="w-1 h-1 bg-mint-light rounded-full" />
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-graphite">Asystent Tymbark</span>
-            </div>
-            
-            <div className="bg-soft-bg rounded-2xl p-4 mb-4 space-y-3 border border-card-border shadow-inner">
-              <p className="text-[13px] text-graphite font-semibold leading-tight text-forest">
-                Cześć {currentUser.name}! Oto co dla Ciebie mam:
-              </p>
-              <p className="text-[13px] text-graphite leading-relaxed">
-                {suggestion.text}
-              </p>
-              <button
-                onClick={() => {
-                  setChatOpen(false)
-                  onNavigate(suggestion.actionTab)
-                }}
-                className="w-full py-3 bg-forest text-white rounded-xl text-xs font-bold hover:bg-forest-mid active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-forest/10"
-              >
-                {suggestion.type === 'event' && 'Zobacz wydarzenie na mapie 🗺️'}
-                {suggestion.type === 'reward_expiry' && 'Otwórz Portfel i odbierz zniżkę 🥐'}
-                {suggestion.type === 'points' && 'Sprawdź swoje punkty w Portfelu 🎁'}
-                {suggestion.type === 'community' && 'Przejdź do tablicy społeczności 👥'}
-                {suggestion.type === 'map' && 'Przejdź do interaktywnej mapy 🗺️'}
-              </button>
-            </div>
-
-            <div className="flex gap-2">
-              <button className="w-9 h-9 rounded-xl bg-forest/10 flex items-center justify-center" aria-label="Nagraj głos">
-                <Mic size={16} className="text-forest" />
-              </button>
-              <input
-                type="text"
-                placeholder="Napisz do asystenta..."
-                className="flex-1 px-3.5 py-2 bg-soft-bg rounded-xl text-sm outline-none focus:ring-2 focus:ring-forest/20 border border-card-border"
-              />
-              <button className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center" aria-label="Wyślij">
-                <Send size={14} className="text-white" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
