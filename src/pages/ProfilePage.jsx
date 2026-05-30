@@ -5,62 +5,11 @@ import {
   Shield,
   ChevronRight,
   MapPin,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   LogOut,
   HelpCircle,
   Palette,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-
-const reports = [
-  {
-    id: 1,
-    title: 'Dziura w drodze – ul. Kościelna',
-    date: '28.11.2026',
-    status: 'fixed',
-    statusLabel: 'Naprawiono',
-  },
-  {
-    id: 2,
-    title: 'Uszkodzona latarnia – park',
-    date: '25.11.2026',
-    status: 'in-progress',
-    statusLabel: 'W toku',
-  },
-  {
-    id: 3,
-    title: 'Zatkany przepust – Zamieście',
-    date: '20.11.2026',
-    status: 'received',
-    statusLabel: 'Odebrane',
-  },
-]
-
-const statusConfig = {
-  received: {
-    icon: AlertCircle,
-    color: 'text-gray-500',
-    bg: 'bg-gray-50',
-    barColor: 'bg-gray-300',
-    progress: 33,
-  },
-  'in-progress': {
-    icon: Clock,
-    color: 'text-warm-orange',
-    bg: 'bg-orange-50',
-    barColor: 'bg-warm-orange',
-    progress: 66,
-  },
-  fixed: {
-    icon: CheckCircle2,
-    color: 'text-forest',
-    bg: 'bg-green-50',
-    barColor: 'bg-mint',
-    progress: 100,
-  },
-}
 
 function ProfilePage() {
   const { currentUser, logout } = useAuth()
@@ -125,50 +74,6 @@ function ProfilePage() {
           )
         })}
       </div>
-
-      {/* Reports history */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-graphite uppercase tracking-wide">Moje zgłoszenia</h2>
-          <span className="text-[11px] text-graphite-light bg-soft-bg px-2 py-0.5 rounded-full">{reports.length}</span>
-        </div>
-
-        <div className="space-y-2.5">
-          {reports.map((report) => {
-            const config = statusConfig[report.status]
-            const StatusIcon = config.icon
-
-            return (
-              <div key={report.id} className="card-base p-4">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-8 h-8 rounded-xl ${config.bg} flex items-center justify-center flex-shrink-0`}>
-                    <StatusIcon size={14} className={config.color} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-graphite leading-tight">
-                      {report.title}
-                    </h4>
-                    <p className="text-[10px] text-graphite-light mt-0.5">{report.date}</p>
-                  </div>
-                </div>
-
-                {/* Status bar */}
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${config.barColor} rounded-full transition-all duration-700`}
-                      style={{ width: `${config.progress}%` }}
-                    />
-                  </div>
-                  <span className={`text-[10px] font-medium ${config.color} whitespace-nowrap`}>
-                    {report.statusLabel}
-                  </span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
 
       {/* Logout */}
       <button 
