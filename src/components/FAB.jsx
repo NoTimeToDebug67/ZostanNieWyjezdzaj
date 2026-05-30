@@ -7,7 +7,7 @@ const fabActions = [
     label: 'Zgłoś',
     icon: AlertTriangle,
     color: 'bg-red-500',
-    angle: -135,
+    angle: -144,
   },
   {
     id: 'initiative',
@@ -21,27 +21,26 @@ const fabActions = [
     label: 'Pytaj',
     icon: MessageCircle,
     color: 'bg-forest-mid',
-    angle: -45,
+    angle: -40,
   },
 ]
 
 function FAB({ isOpen, onToggle }) {
-  const radius = 72
+  const radius = 76
 
   return (
-    <div className="absolute bottom-[22px] left-1/2 -translate-x-1/2 z-50">
+    <div className="absolute bottom-[22px] left-1/2 -translate-x-1/2 z-[90]">
       {/* Radial action buttons */}
       {fabActions.map((action, index) => {
         const angleRad = (action.angle * Math.PI) / 180
         const x = Math.cos(angleRad) * radius
-        const y = Math.sin(angleRad) * radius
+        const y = Math.sin(angleRad) * radius - 36
 
         return (
           <div
             key={action.id}
-            className={`absolute left-1/2 top-1/2 transition-all duration-300 ${
-              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className={`absolute left-1/2 top-1/2 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
             style={{
               transform: isOpen
                 ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
@@ -55,6 +54,9 @@ function FAB({ isOpen, onToggle }) {
             >
               <action.icon size={17} />
             </button>
+            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-800 bg-white/95 border border-card-border rounded-full px-2 py-0.5 shadow-glass whitespace-nowrap pointer-events-none transition-all duration-200">
+              {action.label}
+            </span>
           </div>
         )
       })}
@@ -62,9 +64,8 @@ function FAB({ isOpen, onToggle }) {
       {/* Main FAB */}
       <button
         onClick={onToggle}
-        className={`relative w-13 h-13 w-[52px] h-[52px] rounded-full gradient-primary shadow-fab flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 ${
-          isOpen ? 'rotate-45' : 'rotate-0'
-        }`}
+        className={`relative w-13 h-13 w-[52px] h-[52px] rounded-full gradient-primary shadow-fab flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-90 ${isOpen ? 'rotate-45' : 'rotate-0'
+          }`}
         aria-label={isOpen ? 'Zamknij menu' : 'Otwórz menu akcji'}
         aria-expanded={isOpen}
       >
