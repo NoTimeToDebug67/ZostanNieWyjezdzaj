@@ -155,3 +155,85 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Leaflet map custom overrides */
+.leaflet-container {
+  background: #f8faf9 !important; /* soft-bg */
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.leaflet-container.zoom-low .gmina-tooltip {
+  display: none !important;
+}
+
+/* Gmina Tooltips (Labels) */
+.gmina-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #1b4332 !important; /* forest */
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  text-shadow: 
+    -1.5px -1.5px 0 #f8faf9, 
+     1.5px -1.5px 0 #f8faf9, 
+    -1.5px  1.5px 0 #f8faf9, 
+     1.5px  1.5px 0 #f8faf9;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+
+/* Hide default leaflet tooltip tip */
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  display: none !important;
+}
+
+/* Custom Marker styles */
+.custom-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Style Leaflet controls to match design system */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px);
+  color: #1b4332 !important;
+  border: 1px solid #e8f0ec !important;
+  font-weight: bold;
+  height: 36px !important;
+  width: 36px !important;
+  line-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background: #ffffff !important;
+}
+
+.leaflet-bar {
+  border: none !important;
+}
+
+.leaflet-attribution-control {
+  font-size: 8px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 4px 0 0 0;
+  color: #6b7280 !important;
+}
+
