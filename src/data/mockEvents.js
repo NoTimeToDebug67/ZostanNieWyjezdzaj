@@ -30,6 +30,21 @@ const mockEvents = [
     "attendees_count": 34
   },
   {
+    "id": "past-1",
+    "title": "Warsztaty Pieczenia Chleba KGW",
+    "description": "Kultowe warsztaty tradycyjnego wypieku chleba na zakwasie prowadzone przez Koło Gospodyń Wiejskich. Degustacja lokalnych konfitur i serów.",
+    "type": "event",
+    "gmina": "Piekiełko",
+    "latitude": 49.742,
+    "longitude": 20.279,
+    "category": "Kultura",
+    "event_date": "12 Czerwca",
+    "event_day": "Środa",
+    "event_time": "10:00",
+    "location_name": "Świetlica Wiejska, Piekiełko",
+    "attendees_count": 25
+  },
+  {
     "id": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
     "title": "Piknik i Pokazy Strażackie OSP",
     "description": "Prezentacja wozów strażackich, pokazy ratownictwa technicznego, grill dla mieszkańców i atrakcje dla dzieci.",

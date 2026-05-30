@@ -42,15 +42,72 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Initialize mock events in localStorage if they don't exist or are outdated
     const stored = localStorage.getItem('tymbark_events');
-    if (!stored || JSON.parse(stored).length < 100) {
+    if (!stored || JSON.parse(stored).length < 100 || !JSON.parse(stored).some(e => e.id === 'past-1')) {
       localStorage.setItem('tymbark_events', JSON.stringify(mockEvents));
     }
 
     if (!isSupabaseActive) {
+      // Migrate mock database users in localStorage if they don't have past events loaded
+      const storedUsersStr = localStorage.getItem('tymbark_users');
+      if (storedUsersStr) {
+        const parsedUsers = JSON.parse(storedUsersStr);
+        let updatedAny = false;
+        const migrated = parsedUsers.map(u => {
+          if (u.email === 'ania@tymbark.pl') {
+            if (!u.joinedEvents) u.joinedEvents = [];
+            if (!u.joinedEvents.some(e => e.id === 'past-1')) {
+              u.joinedEvents.push({
+                id: 'past-1',
+                title: 'Warsztaty Pieczenia Chleba KGW',
+                date: new Date('2026-06-12T10:00:00').toISOString(),
+                location: 'Świetlica Wiejska, Piekiełko'
+              });
+              updatedAny = true;
+            }
+            if (!u.joinedEvents.some(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')) {
+              u.joinedEvents.push({
+                id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+                title: 'Sąsiedzkie Repair Cafe w remizie',
+                date: new Date('2026-06-15T15:00:00').toISOString(),
+                location: 'Remiza OSP Tymbark'
+              });
+              updatedAny = true;
+            }
+          }
+          return u;
+        });
+        if (updatedAny) {
+          localStorage.setItem('tymbark_users', JSON.stringify(migrated));
+          setUsers(migrated);
+        }
+      }
+
       // LocalStorage Mock Initialization
       const session = localStorage.getItem('tymbark_session');
       if (session) {
-        setCurrentUser(JSON.parse(session));
+        const parsedUser = JSON.parse(session);
+        // Force inject past events so they are immediately available for mock chat demo!
+        if (!parsedUser.joinedEvents) {
+          parsedUser.joinedEvents = [];
+        }
+        if (!parsedUser.joinedEvents.some(e => e.id === 'past-1')) {
+          parsedUser.joinedEvents.push({
+            id: 'past-1',
+            title: 'Warsztaty Pieczenia Chleba KGW',
+            date: new Date('2026-06-12T10:00:00').toISOString(),
+            location: 'Świetlica Wiejska, Piekiełko'
+          });
+        }
+        if (!parsedUser.joinedEvents.some(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')) {
+          parsedUser.joinedEvents.push({
+            id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+            title: 'Sąsiedzkie Repair Cafe w remizie',
+            date: new Date('2026-06-15T15:00:00').toISOString(),
+            location: 'Remiza OSP Tymbark'
+          });
+        }
+        setCurrentUser(parsedUser);
+        localStorage.setItem('tymbark_session', JSON.stringify(parsedUser));
       }
       setLoading(false);
       return;

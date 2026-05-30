@@ -103,23 +103,152 @@ const isEventPast = (ev) => {
   return false
 }
 
+// Generate context-aware custom mock discussions for each separate activity to make chats completely unique
+const getMockMessagesForEvent = (event) => {
+  const isPast = isEventPast(event)
+  if (!isPast) {
+    return [
+      { from: 'System', text: `Witamy w społeczności przyszłego wydarzenia: ${event.title}! Poniżej możecie dogadywać się co do wspólnego dojazdu czy szczegółów organizacyjnych.`, time: 'Teraz' }
+    ]
+  }
+
+  const title = (event.title || '').toLowerCase()
+  const category = (event.category || '').toLowerCase()
+
+  if (title.includes('chleb') || title.includes('pieczeń') || title.includes('kgw') || title.includes('kulinarn')) {
+    return [
+      { from: 'Janusz z Tymbarku', text: 'Świetne warsztaty! Tradycyjny chleb wyszedł rewelacyjnie.', time: 'Wczoraj, 18:24' },
+      { from: 'Kasia Nowak', text: 'Zgadzam się, przepis od KGW Tymbark jest genialny! Kiedy następne?', time: 'Wczoraj, 19:10' },
+      { from: 'Marek Sołtys', text: 'Dziękuję wszystkim sąsiadom za tak liczny udział! Zostańmy w kontakcie na tym czacie.', time: 'Dziś, 09:15' },
+    ]
+  }
+
+  if (title.includes('repair') || title.includes('napraw') || title.includes('cafe') || title.includes('eko') || title.includes('środowisk') || category.includes('ekologia')) {
+    return [
+      { from: 'Kasia Nowak', text: 'Super inicjatywa z tym Repair Cafe! Naprawiłam stary toster sąsiadki :)', time: 'Wczoraj, 16:40' },
+      { from: 'Piotr K.', text: 'A ja pomogłem panu Staszkowi z rowerem. Bardzo fajna atmosfera.', time: 'Wczoraj, 17:15' },
+      { from: 'Monika Zielińska', text: 'Następnym razem przyniosę maszynę do szycia, możemy porobić jakieś warsztaty!', time: 'Wczoraj, 20:02' },
+    ]
+  }
+
+  if (category.includes('sport') || title.includes('bieg') || title.includes('mecz') || title.includes('turyst') || title.includes('joga') || category.includes('rekreacja')) {
+    return [
+      { from: 'Tomasz W.', text: 'Świetna trasa i super tempo! Wielkie dzięki dla organizatorów.', time: 'Wczoraj, 21:05' },
+      { from: 'Aneta M.', text: 'Racja, pogoda dopisała, a zakwasy będą na pewno! Kiedy kolejny wspólny trening?', time: 'Dziś, 08:30' },
+      { from: 'Janusz z Tymbarku', text: 'Ja chętnie dołączę w przyszły weekend, dajcie znać jaka trasa!', time: 'Dziś, 10:12' },
+    ]
+  }
+
+  if (category.includes('edukacja') || title.includes('kodowan') || title.includes('warsztat') || title.includes('nauka') || title.includes('hack')) {
+    return [
+      { from: 'Marta B.', text: 'Dzieciaki były zachwycone tymi zajęciami, nie chciały wracać do domu!', time: 'Wczoraj, 18:50' },
+      { from: 'Paweł K.', text: 'Moje też! Świetny poziom merytoryczny i super podejście prowadzących.', time: 'Wczoraj, 19:40' },
+      { from: 'Kasia Nowak', text: 'Warto robić takie rzeczy lokalnie, brawa dla biblioteki za organizację.', time: 'Dziś, 09:20' },
+    ]
+  }
+
+  return [
+    { from: 'Janusz z Tymbarku', text: `Super wydarzenie: ${event.title}! Cieszę się, że mogłem wziąć udział.`, time: 'Wczoraj, 18:00' },
+    { from: 'Kasia Nowak', text: 'Zgadzam się, organizacja była na najwyższym poziomie! Kiedy następne?', time: 'Wczoraj, 19:30' },
+    { from: 'Marek Sołtys', text: 'Dziękuję wszystkim sąsiadom za tak liczny udział! Zostańmy w kontakcie.', time: 'Dziś, 08:15' },
+  ]
+}
+
 function CommunityPage() {
-  const { currentUser, joinEvent, leaveEvent, isSupabaseActive } = useAuth()
+  const { currentUser, joinEvent, leaveEvent, addPoints, isSupabaseActive } = useAuth()
 
   const [tab, setTab] = useState('events')
-  const [events, setEvents] = useState([])
-  const [loadingEvents, setLoadingEvents] = useState(true)
+  const [events, setEvents] = useState(() => {
+    const stored = localStorage.getItem('tymbark_events')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored).filter(e => e.type === 'event')
+        const hasPast1 = parsed.some(e => e.id.toString() === 'past-1')
+        const hasRepairCafe = parsed.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+        
+        const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
+        const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+        
+        const merged = [...parsed]
+        if (!hasPast1 && staticPast1) merged.push(staticPast1)
+        if (!hasRepairCafe && staticRepairCafe) {
+          const updatedRepair = { ...staticRepairCafe, category: 'warsztaty' }
+          merged.push(updatedRepair)
+        }
+        return merged
+      } catch (e) {
+        return mockEventsStatic.filter(e => e.type === 'event')
+      }
+    }
+    return mockEventsStatic.filter(e => e.type === 'event').map(e => {
+      if (e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d') {
+        return { ...e, category: 'warsztaty' }
+      }
+      return e
+    })
+  })
+  const [loadingEvents, setLoadingEvents] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [categoryFilter, setCategoryFilter] = useState('wszystkie')
   const [eventScope, setEventScope] = useState('all') // 'all' or 'joined'
   const [calMonth, setCalMonth] = useState(5) // Default to June 2026 (high event density for hackathon showcase!)
   const [calYear, setCalYear] = useState(2026)
   const [selectedDay, setSelectedDay] = useState(null)
+  // 100% local frontend mock of joined events - past events (12th and 15th June) joined by default for demo!
+  const [localJoinedIds, setLocalJoinedIds] = useState(['a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'past-1'])
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEvent, setNewEvent] = useState({ title: '', category: 'lokalne', location: '', date: '', time: '', description: '' })
 
-  // Groups state
-  const [groups, setGroups] = useState([])
+  // Groups state pre-populated with mock active neighbor chats
+  const [groups, setGroups] = useState(() => {
+    const stored = localStorage.getItem('tymbark_groups')
+    const activeUserName = 'Ania'
+    const defaultGroups = [
+      {
+        id: 'grp-past-1',
+        eventId: 'past-1',
+        name: 'Społeczność: Warsztaty Pieczenia Chleba KGW',
+        members: ['Janusz z Tymbarku', 'Kasia Nowak', 'Marek Sołtys', activeUserName],
+        messages: [
+          { from: 'Janusz z Tymbarku', text: 'Świetne warsztaty! Tradycyjny chleb wyszedł rewelacyjnie.', time: 'Wczoraj, 18:24' },
+          { from: 'Kasia Nowak', text: 'Zgadzam się, przepis od KGW Tymbark jest genialny! Kiedy następne?', time: 'Wczoraj, 19:10' },
+          { from: 'Marek Sołtys', text: 'Dziękuję wszystkim sąsiadom za tak liczny udział! Zostańmy w kontakcie na tym czacie.', time: 'Dziś, 09:15' },
+        ],
+        createdAt: new Date().toISOString(),
+        isPastCommunity: true
+      },
+      {
+        id: 'grp-repair-cafe',
+        eventId: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+        name: 'Społeczność: Sąsiedzkie Repair Cafe w remizie',
+        members: ['Kasia Nowak', 'Piotr K.', 'Monika Zielińska', activeUserName],
+        messages: [
+          { from: 'Kasia Nowak', text: 'Super inicjatywa z tym Repair Cafe! Naprawiłam stary toster sąsiadki :)', time: 'Wczoraj, 16:40' },
+          { from: 'Piotr K.', text: 'A ja pomogłem panu Staszkowi z rowerem. Bardzo fajna atmosfera.', time: 'Wczoraj, 17:15' },
+          { from: 'Monika Zielińska', text: 'Następnym razem przyniosę maszynę do szycia, możemy porobić jakieś warsztaty!', time: 'Wczoraj, 20:02' },
+        ],
+        createdAt: new Date().toISOString(),
+        isPastCommunity: true
+      }
+    ]
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const merged = [...parsed]
+          defaultGroups.forEach(dg => {
+            if (!merged.some(g => g.eventId === dg.eventId)) {
+              merged.push(dg)
+            }
+          })
+          return merged
+        }
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return defaultGroups
+  })
   const [selectedGroup, setSelectedGroup] = useState(null)
   const [chatMessage, setChatMessage] = useState('')
 
@@ -134,11 +263,48 @@ function CommunityPage() {
       if (isSupabaseActive) {
         const { data, error } = await supabase.from('events').select('*').eq('type', 'event')
         if (error) throw error
-        setEvents(data || [])
+        const merged = data || []
+        const hasPast1 = merged.some(e => e.id.toString() === 'past-1')
+        const hasRepairCafe = merged.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+        
+        const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
+        const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+        
+        if (!hasPast1 && staticPast1) merged.push(staticPast1)
+        if (!hasRepairCafe && staticRepairCafe) {
+          const updatedRepair = { ...staticRepairCafe, category: 'warsztaty' }
+          merged.push(updatedRepair)
+        }
+        setEvents(merged)
       } else {
         const stored = localStorage.getItem('tymbark_events')
         if (stored) {
-          setEvents(JSON.parse(stored).filter(e => e.type === 'event'))
+          try {
+            const parsed = JSON.parse(stored).filter(e => e.type === 'event')
+            const hasPast1 = parsed.some(e => e.id.toString() === 'past-1')
+            const hasRepairCafe = parsed.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+            
+            const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
+            const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
+            
+            let merged = [...parsed]
+            let updated = false
+            if (!hasPast1 && staticPast1) {
+              merged.push(staticPast1)
+              updated = true
+            }
+            if (!hasRepairCafe && staticRepairCafe) {
+              const updatedRepair = { ...staticRepairCafe, category: 'warsztaty' }
+              merged.push(updatedRepair)
+              updated = true
+            }
+            if (updated) {
+              localStorage.setItem('tymbark_events', JSON.stringify(merged))
+            }
+            setEvents(merged)
+          } catch (e) {
+            setEvents(mockEventsStatic.filter(e => e.type === 'event'))
+          }
         } else {
           localStorage.setItem('tymbark_events', JSON.stringify(mockEventsStatic))
           setEvents(mockEventsStatic.filter(e => e.type === 'event'))
@@ -146,6 +312,7 @@ function CommunityPage() {
       }
     } catch (err) {
       console.error('Błąd wczytywania wydarzeń:', err)
+      setEvents(mockEventsStatic.filter(e => e.type === 'event'))
     } finally {
       setLoadingEvents(false)
     }
@@ -164,11 +331,17 @@ function CommunityPage() {
 
   useEffect(() => { fetchEvents(); loadGroups() }, [currentUser])
 
-  const toggleJoinEvent = async (event) => {
-    if (!currentUser) { alert('Zaloguj się najpierw!'); return }
-    const isJoined = currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString())
-    if (isJoined) { await leaveEvent(event.id) } else { await joinEvent(event) }
-    await fetchEvents()
+  const toggleJoinEvent = (event) => {
+    const idStr = event.id.toString()
+    if (localJoinedIds.includes(idStr)) {
+      setLocalJoinedIds(localJoinedIds.filter(id => id !== idStr))
+    } else {
+      setLocalJoinedIds([...localJoinedIds, idStr])
+      if (addPoints) {
+        addPoints(20) // dynamic points update for wallet feedback!
+      }
+      createGroupFromEvent(event) // Automatically ensure a separate, dedicated chat room is created!
+    }
   }
 
   const handleAddEvent = () => {
@@ -198,17 +371,13 @@ function CommunityPage() {
   }
 
   const createGroupFromEvent = (event) => {
-    if (!currentUser) return
+    const activeUserName = currentUser?.name || 'Ania'
     const existing = groups.find(g => g.eventId === event.id.toString())
     if (existing) return
 
     const isPast = isEventPast(event)
-    const mockMembers = ['Janusz z Tymbarku', 'Kasia Nowak', 'Marek Sołtys', currentUser.name]
-    const mockMessages = isPast ? [
-      { from: 'Janusz z Tymbarku', text: 'Świetne wydarzenie! Naprawdę cieszę się, że mogłem wziąć udział.', time: 'Wczoraj, 18:24' },
-      { from: 'Kasia Nowak', text: 'Zgadzam się, warsztaty i organizacja były na najwyższym poziomie! Kiedy następne?', time: 'Wczoraj, 19:10' },
-      { from: 'Marek Sołtys', text: 'Dziękuję wszystkim sąsiadom za tak liczny udział! Zostańmy w kontakcie na tym czacie.', time: 'Dziś, 09:15' },
-    ] : []
+    const mockMembers = ['Janusz z Tymbarku', 'Kasia Nowak', 'Marek Sołtys', activeUserName]
+    const mockMessages = getMockMessagesForEvent(event)
 
     const newGroup = {
       id: 'grp-' + Date.now(),
@@ -223,10 +392,10 @@ function CommunityPage() {
   }
 
   const joinGroup = (groupId) => {
-    if (!currentUser) return
+    const activeUserName = currentUser?.name || 'Ania'
     const updated = groups.map(g => {
-      if (g.id === groupId && !g.members.includes(currentUser.name)) {
-        return { ...g, members: [...g.members, currentUser.name] }
+      if (g.id === groupId && !g.members.includes(activeUserName)) {
+        return { ...g, members: [...g.members, activeUserName] }
       }
       return g
     })
@@ -234,15 +403,65 @@ function CommunityPage() {
   }
 
   const sendGroupMessage = (groupId) => {
-    if (!chatMessage.trim() || !currentUser) return
+    if (!chatMessage.trim()) return
+    const activeUserName = currentUser?.name || 'Ania'
+    const userMsg = chatMessage.trim()
+    
+    // Add user's message
     const updated = groups.map(g => {
       if (g.id === groupId) {
-        return { ...g, messages: [...g.messages, { from: currentUser.name, text: chatMessage, time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' }) }] }
+        return { 
+          ...g, 
+          messages: [
+            ...g.messages, 
+            { 
+              from: activeUserName, 
+              text: userMsg, 
+              time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' }) 
+            }
+          ] 
+        }
       }
       return g
     })
     saveGroups(updated)
     setChatMessage('')
+
+    // Trigger bot reply after 1.5s
+    setTimeout(() => {
+      const bots = ['Kasia Nowak', 'Janusz z Tymbarku', 'Marek Sołtys', 'Monika Zielińska']
+      const botReplies = [
+        "Świetnie powiedziane! Zgadzam się w stu procentach 👍",
+        "Dokładnie! Musimy koniecznie zorganizować kolejne takie spotkanie w Tymbarku.",
+        "Super pomysł! Też chętnie się w to zaangażuję następnym razem.",
+        "Jasne! Dajcie znać, kiedy planujemy kolejne spotkanie, chętnie pomogę w organizacji.",
+        "Fajnie, że tak prężnie działamy jako sąsiedzi! Pozdrowienia dla wszystkich 😊"
+      ]
+      
+      const randomBot = bots[Math.floor(Math.random() * bots.length)]
+      const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)]
+      
+      setGroups(prevGroups => {
+        const updatedWithBot = prevGroups.map(g => {
+          if (g.id === groupId) {
+            return {
+              ...g,
+              messages: [
+                ...g.messages,
+                {
+                  from: randomBot,
+                  text: randomReply,
+                  time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' })
+                }
+              ]
+            }
+          }
+          return g
+        })
+        localStorage.setItem('tymbark_groups', JSON.stringify(updatedWithBot))
+        return updatedWithBot
+      })
+    }, 1500)
   }
 
   // Calendar data
@@ -287,7 +506,7 @@ function CommunityPage() {
 
     return events.filter(ev => {
       // Scope Filter (All vs Joined)
-      const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === ev.id.toString())
+      const isJoined = localJoinedIds.includes(ev.id.toString())
       if (eventScope === 'joined' && !isJoined) {
         return false
       }
@@ -332,7 +551,7 @@ function CommunityPage() {
   // Filter events list by category, selected month, year, eventScope, and selectedDay (if active)
   const filteredEvents = events.filter(ev => {
     // 1. Scope Filter (All vs Joined)
-    const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === ev.id.toString())
+    const isJoined = localJoinedIds.includes(ev.id.toString())
     if (eventScope === 'joined' && !isJoined) {
       return false
     }
@@ -383,7 +602,7 @@ function CommunityPage() {
 
   // Check if user participated in event (for group creation eligibility)
   const canCreateGroup = (event) => {
-    return currentUser && currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString())
+    return localJoinedIds.includes(event.id.toString())
   }
 
   const getGroupForEvent = (eventId) => {
@@ -394,7 +613,8 @@ function CommunityPage() {
   if (selectedGroup) {
     const group = groups.find(g => g.id === selectedGroup)
     if (!group) { setSelectedGroup(null); return null }
-    const isMember = currentUser && group.members.includes(currentUser.name)
+    const activeUserName = currentUser?.name || 'Ania'
+    const isMember = group.members.includes(activeUserName)
 
     return (
       <div className="px-4 flex flex-col h-full pb-28 pt-2">
@@ -427,17 +647,17 @@ function CommunityPage() {
             <p className="text-[11px] text-graphite-light text-center py-6">Brak wiadomości. Rozpocznij rozmowę!</p>
           ) : (
             group.messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from === currentUser?.name ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex ${msg.from === activeUserName ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-[11px] ${
-                  msg.from === currentUser?.name
+                  msg.from === activeUserName
                     ? 'bg-forest text-white rounded-br-md'
                     : 'bg-white text-graphite border border-card-border rounded-bl-md'
                 }`}>
-                  {msg.from !== currentUser?.name && (
+                  {msg.from !== activeUserName && (
                     <p className="text-[9px] font-bold text-forest mb-0.5">{msg.from}</p>
                   )}
                   <p className="leading-relaxed">{msg.text}</p>
-                  <p className={`text-[8px] mt-0.5 ${msg.from === currentUser?.name ? 'text-white/60' : 'text-gray-400'}`}>{msg.time}</p>
+                  <p className={`text-[8px] mt-0.5 ${msg.from === activeUserName ? 'text-white/60' : 'text-gray-400'}`}>{msg.time}</p>
                 </div>
               </div>
             ))
@@ -537,7 +757,7 @@ function CommunityPage() {
               }`}
             >
               <Check size={11} className={eventScope === 'joined' ? 'text-forest' : 'text-graphite-light'} />
-              Moje wydarzenia ({currentUser?.joinedEvents?.length || 0})
+              Moje wydarzenia ({localJoinedIds.length})
             </button>
           </div>
 
@@ -631,7 +851,7 @@ function CommunityPage() {
           ) : filteredEvents.length > 0 ? (
             <div className="space-y-2">
               {filteredEvents.map((event) => {
-                const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === event.id.toString())
+                const isJoined = localJoinedIds.includes(event.id.toString())
                 return (
                   <button
                     key={event.id}
@@ -757,9 +977,13 @@ function CommunityPage() {
                       </div>
 
                       <button
-                        onClick={async () => {
-                          if (!isJoined) {
-                            await joinEvent(selectedEvent)
+                        onClick={() => {
+                          const idStr = selectedEvent.id.toString()
+                          if (!localJoinedIds.includes(idStr)) {
+                            setLocalJoinedIds([...localJoinedIds, idStr])
+                            if (addPoints) {
+                              addPoints(20)
+                            }
                           }
                           createGroupFromEvent(selectedEvent)
                           setSelectedEvent(null)
@@ -793,20 +1017,24 @@ function CommunityPage() {
                     </button>
 
                     {/* Create/join group - only if participated */}
-                    {isJoined && !existingGroup && (
+                    {isJoined && (
                       <button
-                        onClick={() => { createGroupFromEvent(selectedEvent); setSelectedEvent(null); setTab('groups') }}
+                        onClick={() => { 
+                          createGroupFromEvent(selectedEvent)
+                          setSelectedEvent(null) 
+                          setTimeout(() => {
+                            const grp = getGroupForEvent(selectedEvent.id)
+                            if (grp) {
+                              setSelectedGroup(grp.id)
+                              setTab('groups')
+                            } else {
+                              setTab('groups')
+                            }
+                          }, 50)
+                        }}
                         className="w-full py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 bg-forest/10 text-forest border border-forest/20 active:scale-[0.97] transition-transform"
                       >
-                        <MessageSquare size={14} /> Utwórz grupę z tego wydarzenia
-                      </button>
-                    )}
-                    {isJoined && existingGroup && (
-                      <button
-                        onClick={() => { setSelectedEvent(null); setSelectedGroup(existingGroup.id); setTab('groups') }}
-                        className="w-full py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 bg-forest/10 text-forest border border-forest/20 active:scale-[0.97] transition-transform"
-                      >
-                        <MessageSquare size={14} /> Otwórz grupę ({existingGroup.members.length} osób)
+                        <MessageSquare size={14} /> Otwórz czat społeczności
                       </button>
                     )}
                   </div>
