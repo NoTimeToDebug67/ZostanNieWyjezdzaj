@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft, Navigation } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import mockEventsStatic from '../data/mockEvents'
@@ -144,6 +144,29 @@ function CommunityPage() {
   const daysInMonth = getDaysInMonth(calYear, calMonth)
   const firstDay = getFirstDayOfMonth(calYear, calMonth)
   const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1
+
+  // Helper to get event day
+  const getEventDay = (ev) => {
+    const dateStr = ev.event_date || ev.date
+    if (!dateStr) return null
+    if (dateStr.includes('-')) {
+      const d = new Date(dateStr)
+      if (d.getMonth() === calMonth && d.getFullYear() === calYear) return d.getDate()
+    } else {
+      const num = parseInt(dateStr)
+      if (!isNaN(num)) return num
+    }
+    return null
+  }
+
+  const isUserParticipatingOnDay = (day) => {
+    if (!currentUser) return false
+    return events.some(ev => {
+      const evDay = getEventDay(ev)
+      if (evDay !== day) return false
+      return currentUser.joinedEvents.some(je => je.id.toString() === ev.id.toString())
+    })
+  }
 
   const eventDays = events.reduce((acc, ev) => {
     const dateStr = ev.event_date || ev.date
@@ -308,10 +331,23 @@ function CommunityPage() {
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1
                 const count = eventDays[day]
+                const isParticipating = isUserParticipatingOnDay(day)
+                
+                let dayStyle = 'text-graphite hover:bg-soft-bg'
+                if (isParticipating) {
+                  dayStyle = 'bg-mint/20 text-forest font-bold border border-mint/40'
+                } else if (count) {
+                  dayStyle = 'bg-forest/10 text-forest font-bold'
+                }
+
                 return (
-                  <button key={day} className={`relative w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-medium transition-colors ${count ? 'bg-forest/10 text-forest font-bold' : 'text-graphite hover:bg-soft-bg'}`}>
+                  <button key={day} className={`relative w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-medium transition-colors ${dayStyle}`}>
                     {day}
-                    {count && <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-forest text-white text-[7px] font-bold rounded-full flex items-center justify-center">{count}</span>}
+                    {count && (
+                      <span className={`absolute -top-0.5 -right-0.5 w-3.5 h-3.5 text-[7px] font-bold rounded-full flex items-center justify-center ${isParticipating ? 'bg-mint text-white' : 'bg-forest text-white'}`}>
+                        {count}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -349,7 +385,9 @@ function CommunityPage() {
                   <button
                     key={event.id}
                     onClick={() => setSelectedEvent(event)}
-                    className="w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                    className={`w-full card-base p-3 flex items-center gap-3 text-left active:scale-[0.98] transition-transform ${
+                      isJoined ? 'bg-mint/15 border border-mint/30 shadow-inner-glow' : 'border border-transparent'
+                    }`}
                   >
                     <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
                       isJoined ? 'bg-forest text-white' : 'bg-soft-bg text-graphite border border-card-border'
@@ -461,14 +499,28 @@ function CommunityPage() {
                 const existingGroup = getGroupForEvent(selectedEvent.id)
                 return (
                   <div className="mt-4 space-y-2">
-                    <button
-                      onClick={() => { toggleJoinEvent(selectedEvent); setSelectedEvent(null) }}
-                      className={`w-full py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
-                        isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
-                      }`}
-                    >
-                      {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
-                    </button>
+                    <div className="flex gap-2">
+                      {selectedEvent.latitude && selectedEvent.longitude && (
+                        <button
+                          onClick={() => {
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedEvent.latitude},${selectedEvent.longitude}`, '_blank');
+                          }}
+                          className="flex-1 py-3 bg-soft-bg text-forest border border-card-border hover:bg-gray-100 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
+                        >
+                          <Navigation size={14} /> Nawiguj
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { toggleJoinEvent(selectedEvent); setSelectedEvent(null) }}
+                        className={`py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform ${
+                          selectedEvent.latitude && selectedEvent.longitude ? 'flex-1' : 'w-full'
+                        } ${
+                          isJoined ? 'bg-soft-bg text-forest border border-card-border' : 'gradient-primary text-white'
+                        }`}
+                      >
+                        {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
+                      </button>
+                    </div>
 
                     {/* Create/join group - only if participated */}
                     {isJoined && !existingGroup && (

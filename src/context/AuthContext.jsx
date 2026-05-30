@@ -3,6 +3,37 @@ import initialUserData from '../data/userData';
 import { supabase } from '../lib/supabaseClient';
 import mockEvents from '../data/mockEvents';
 
+const parsePolishDate = (dateStr) => {
+  if (!dateStr) return new Date();
+  const parsed = Date.parse(dateStr);
+  if (!isNaN(parsed)) return new Date(parsed);
+
+  const cleanStr = dateStr.toLowerCase().trim();
+  const parts = cleanStr.split(/\s+/);
+  
+  if (parts.length >= 2) {
+    const day = parseInt(parts[0], 10);
+    const monthName = parts[1];
+    const months = {
+      'stycz': 0, 'lut': 1, 'mar': 2, 'kwie': 3, 'maj': 4, 'czerw': 5,
+      'lip': 6, 'sierp': 7, 'wrzes': 8, 'paź': 9, 'listo': 10, 'grud': 11
+    };
+    
+    let month = -1;
+    for (const key in months) {
+      if (monthName.startsWith(key)) {
+        month = months[key];
+        break;
+      }
+    }
+    
+    if (!isNaN(day) && month !== -1) {
+      return new Date(2026, month, day);
+    }
+  }
+  return new Date();
+};
+
 const AuthContext = createContext();
 
 // Check if Supabase keys are provided and are not the placeholder strings
@@ -357,7 +388,12 @@ export function AuthProvider({ children }) {
     const alreadyJoined = currentUser.joinedEvents.some(e => e.id.toString() === eventData.id.toString());
     if (alreadyJoined) return;
 
-    const eventDateObj = eventData.date instanceof Date ? eventData.date : new Date(eventData.date);
+    const rawDate = eventData.date || eventData.event_date;
+    const eventDateObj = rawDate instanceof Date 
+      ? rawDate 
+      : (typeof rawDate === 'string' && isNaN(Date.parse(rawDate)) 
+        ? parsePolishDate(rawDate) 
+        : new Date(rawDate || Date.now()));
 
     if (!isSupabaseActive) {
       // Mock join event
@@ -370,7 +406,7 @@ export function AuthProvider({ children }) {
             id: eventData.id.toString(),
             title: eventData.title,
             date: eventDateObj,
-            location: eventData.location || 'Tymbark',
+            location: eventData.location || eventData.location_name || 'Tymbark',
           }
         ]
       };
@@ -402,7 +438,7 @@ export function AuthProvider({ children }) {
           event_id: eventData.id.toString(),
           title: eventData.title,
           date: eventDateObj.toISOString(),
-          location: eventData.location || 'Tymbark',
+          location: eventData.location || eventData.location_name || 'Tymbark',
         });
 
       if (eventErr) throw eventErr;
