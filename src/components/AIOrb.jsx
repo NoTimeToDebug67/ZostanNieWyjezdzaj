@@ -38,7 +38,6 @@ function AIOrb({ message, actionLabel, onAction }) {
             <div className="w-1.5 h-1.5 bg-mint-light/60 rounded-full animate-pulse-soft" style={{ animationDelay: '0.4s' }} />
             <div className="w-1.5 h-1.5 bg-mint-light/30 rounded-full animate-pulse-soft" style={{ animationDelay: '0.8s' }} />
           </div>
-          <span className="text-[10px] text-white/50 font-semibold ml-1">Sołtys AI</span>
         </div>
 
         {/* Message */}
