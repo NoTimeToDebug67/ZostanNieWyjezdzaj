@@ -13,15 +13,15 @@ const tabs = [
 function BottomNavigation({ activeTab, onTabChange }) {
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 w-full z-30"
+      className="absolute bottom-0 left-0 right-0 w-full z-[80]"
       role="navigation"
       aria-label="Nawigacja główna"
     >
       <div className="bg-white border-t border-gray-100 safe-bottom">
-        <div className="flex items-center justify-around px-4 pt-2 pb-1">
+        <div className="grid grid-cols-5 items-center pt-2 pb-1">
           {tabs.map((tab) => {
             if (tab.id === '_spacer') {
-              return <div key={tab.id} className="w-14" aria-hidden="true" />
+              return <div key={tab.id} aria-hidden="true" />
             }
 
             const Icon = tab.icon
@@ -31,7 +31,7 @@ function BottomNavigation({ activeTab, onTabChange }) {
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-1 transition-all duration-200 ${
                   isActive ? 'text-forest' : 'text-gray-400'
                 }`}
                 aria-label={tab.label}
