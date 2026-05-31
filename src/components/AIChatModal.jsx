@@ -283,23 +283,6 @@ function AIChatModal({ isOpen, onClose }) {
                 <h3 className="text-xs font-bold text-graphite">
                   Asystent Tymbark AI
                 </h3>
-                {usingLiveAPI ? (
-                  <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[8.5px] font-black tracking-wide border border-emerald-200/60 shadow-sm">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                    </span>
-                    Groq Llama 3.3 (Live)
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-[8.5px] font-black tracking-wide border border-indigo-200/60 shadow-sm cursor-help relative group" title="Brak klucza VITE_GROQ_API_KEY. Używam silnika lokalnego.">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
-                    </span>
-                    AI Offline (Mock)
-                  </span>
-                )}
               </div>
               <p className="text-[9px] text-graphite-light font-semibold mt-0.5">Baza wiedzy gminy i mieszkańców</p>
             </div>

@@ -10,15 +10,38 @@ const availableRewards = [
 ]
 
 function WalletPage() {
-  const { currentUser } = useAuth()
+  const { currentUser, redeemReward } = useAuth()
   const [selectedReward, setSelectedReward] = useState(null)
   const [rewardTab, setRewardTab] = useState('mine') // 'mine' | 'shop'
   const [showPointsInfo, setShowPointsInfo] = useState(false)
+  const [rewardToBuy, setRewardToBuy] = useState(null)
+  const [purchaseSuccessReward, setPurchaseSuccessReward] = useState(null)
 
   if (!currentUser) return null
 
   const points = currentUser.points
-  const rewards = currentUser.rewards
+  const rewards = (currentUser.rewards || []).map(r => ({
+    ...r,
+    validUntil: typeof r.validUntil === 'string' ? new Date(r.validUntil) : r.validUntil
+  }))
+
+  const handleBuyReward = (reward) => {
+    setRewardToBuy(reward)
+  }
+
+  const handleConfirmPurchase = async () => {
+    if (!rewardToBuy) return
+    const reward = rewardToBuy
+    setRewardToBuy(null)
+    
+    const res = await redeemReward(reward)
+    if (res && res.success) {
+      setPurchaseSuccessReward(reward)
+      setRewardTab('mine')
+    } else {
+      alert(res?.error || 'Wystąpił błąd podczas zakupu.')
+    }
+  }
 
   return (
     <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
@@ -178,6 +201,7 @@ function WalletPage() {
                   <span className="text-sm font-bold text-forest">{reward.discount}</span>
                   <button
                     disabled={!canAfford}
+                    onClick={() => handleBuyReward(reward)}
                     className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all ${
                       canAfford
                         ? 'gradient-primary text-white active:scale-95'
@@ -213,6 +237,55 @@ function WalletPage() {
               <QrCode size={48} className="text-graphite/20" />
             </div>
             <p className="text-[10px] text-graphite-light mt-2">Pokaż przy kasie</p>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {rewardToBuy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-8">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setRewardToBuy(null)} />
+          <div className="relative bg-white rounded-3xl p-6 w-full max-w-[280px] shadow-2xl animate-slide-up text-center border border-card-border">
+            <span className="text-4xl animate-bounce inline-block">{rewardToBuy.emoji}</span>
+            <h3 className="text-[13px] font-extrabold text-graphite mt-3">Czy na pewno chcesz zakupić rabat?</h3>
+            <p className="text-[11px] text-graphite-light mt-2 leading-relaxed">
+              Z Twojego konta zostanie pobrane <strong className="text-forest font-bold">{rewardToBuy.price} pkt</strong> na zniżkę <strong className="text-forest font-bold">{rewardToBuy.discount}</strong> w <strong>{rewardToBuy.title}</strong>.
+            </p>
+            <div className="flex gap-2.5 mt-5">
+              <button
+                onClick={() => setRewardToBuy(null)}
+                className="flex-1 py-2.5 bg-gray-50 border border-gray-150 hover:bg-gray-100 text-graphite text-[10px] font-bold rounded-xl active:scale-95 transition-all"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleConfirmPurchase}
+                className="flex-1 py-2.5 gradient-primary text-white text-[10px] font-bold rounded-xl active:scale-95 transition-all shadow-md"
+              >
+                Kupuję
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {purchaseSuccessReward && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-8">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPurchaseSuccessReward(null)} />
+          <div className="relative bg-white rounded-3xl p-6 w-full max-w-[280px] shadow-2xl animate-slide-up text-center border border-card-border">
+            <span className="text-4xl inline-block">🎉</span>
+            <h3 className="text-[13px] font-extrabold text-graphite mt-3">Zniżka zakupiona! 🌟</h3>
+            <p className="text-[11px] text-graphite-light mt-2 leading-relaxed">
+              Pomyślnie wymieniono punkty na rabat <strong className="text-forest font-bold">{purchaseSuccessReward.discount}</strong> do <strong>{purchaseSuccessReward.title}</strong>.
+            </p>
+            <p className="text-[10px] text-gray-400 mt-1">Znajdziesz ją teraz w zakładce "Twoje zniżki".</p>
+            <button
+              onClick={() => setPurchaseSuccessReward(null)}
+              className="w-full mt-5 py-2.5 gradient-primary text-white text-[10px] font-bold rounded-xl active:scale-95 transition-all shadow-md"
+            >
+              Super!
+            </button>
           </div>
         </div>
       )}
