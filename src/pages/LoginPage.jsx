@@ -50,7 +50,13 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center bg-gradient-to-br from-forest via-forest-mid to-forest-light px-6 py-12 relative overflow-hidden">
+    <div
+      className="min-h-screen flex flex-col justify-center bg-cover bg-center bg-[#14532d] px-6 py-12 relative overflow-hidden"
+      style={{ backgroundImage: `url('${import.meta.env.BASE_URL}login_bg.svg')` }}
+    >
+      {/* Dark background overlay to improve contrast */}
+      <div className="absolute inset-0 bg-black/45 pointer-events-none z-0" />
+
       {/* Background glowing orbs */}
       <div className="absolute -top-12 -left-12 w-48 h-48 bg-mint-light/10 rounded-full blur-3xl animate-pulse-soft" />
       <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-yellow-300/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1.5s' }} />
@@ -58,21 +64,25 @@ function LoginPage() {
       <div className="relative z-10 w-full max-w-md mx-auto">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-3 shadow-lg">
-            <span className="text-white text-2xl font-black tracking-tight">T</span>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#86efac] to-[#22c55e] flex items-center justify-center mx-auto mb-3.5 shadow-xl border border-white/20 animate-pulse-soft">
+            <span className="text-[#14532d] text-2xl font-black tracking-tight">T</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight leading-none">Tymbark Hub</h1>
-          <p className="text-xs text-white/60 mt-1.5 font-medium">Poznaj i współtwórz swoją okolicę</p>
+          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-[#e2fbf0] to-[#86efac] tracking-tight leading-none drop-shadow-[0_2px_8px_rgba(20,83,45,0.4)]">
+            Tymbark Hub
+          </h1>
+          <p className="text-xs text-emerald-100/90 mt-2 font-bold tracking-wide drop-shadow-[0_1px_3px_rgba(20,83,45,0.5)]">
+            Poznaj i współtwórz swoją okolicę
+          </p>
         </div>
 
         {/* Card Container */}
-        <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/20 transition-all duration-300">
+        <div className="bg-emerald-950/45 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/10 transition-all duration-300 text-white">
           {/* Tab Selector */}
-          <div className="flex bg-soft-bg rounded-2xl p-1 mb-6 border border-card-border">
+          <div className="flex bg-emerald-900/40 rounded-2xl p-1 mb-6 border border-white/5">
             <button
               onClick={() => { setIsLogin(true); setError(''); }}
               className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 ${
-                isLogin ? 'bg-white text-forest shadow-sm' : 'text-graphite-light hover:text-graphite'
+                isLogin ? 'bg-[#16a34a] text-white shadow-md shadow-[#16a34a]/20' : 'text-emerald-100/60 hover:text-white'
               }`}
             >
               Zaloguj się
@@ -80,7 +90,7 @@ function LoginPage() {
             <button
               onClick={() => { setIsLogin(false); setError(''); }}
               className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-300 ${
-                !isLogin ? 'bg-white text-forest shadow-sm' : 'text-graphite-light hover:text-graphite'
+                !isLogin ? 'bg-[#16a34a] text-white shadow-md shadow-[#16a34a]/20' : 'text-emerald-100/60 hover:text-white'
               }`}
             >
               Załóż konto
@@ -89,7 +99,7 @@ function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-500 rounded-2xl p-3 text-xs font-semibold mb-4 animate-shake text-center">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-3 text-xs font-semibold mb-4 animate-shake text-center">
               {error}
             </div>
           )}
@@ -99,15 +109,15 @@ function LoginPage() {
             {/* Name field (Register only) */}
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-graphite-light uppercase tracking-wider block ml-1">Imię</label>
+                <label className="text-[10px] font-bold text-emerald-200/70 uppercase tracking-wider block ml-1">Imię</label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-graphite-light" />
+                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50" />
                   <input
                     type="text"
                     placeholder="Np. Anna"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-soft-bg border border-card-border rounded-2xl text-xs font-medium text-graphite placeholder-graphite-light/60 outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-emerald-900/20 border border-white/10 rounded-2xl text-xs font-medium text-white placeholder-white/25 outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-400 transition-all"
                   />
                 </div>
               </div>
@@ -115,35 +125,35 @@ function LoginPage() {
 
             {/* Email field */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-graphite-light uppercase tracking-wider block ml-1">E-mail</label>
+              <label className="text-[10px] font-bold text-emerald-200/70 uppercase tracking-wider block ml-1">E-mail</label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-graphite-light" />
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50" />
                 <input
                   type="email"
                   placeholder="np. ania@tymbark.pl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-soft-bg border border-card-border rounded-2xl text-xs font-medium text-graphite placeholder-graphite-light/60 outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-emerald-900/20 border border-white/10 rounded-2xl text-xs font-medium text-white placeholder-white/25 outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-400 transition-all"
                 />
               </div>
             </div>
 
             {/* Password field */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-graphite-light uppercase tracking-wider block ml-1">Hasło</label>
+              <label className="text-[10px] font-bold text-emerald-200/70 uppercase tracking-wider block ml-1">Hasło</label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-graphite-light" />
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 bg-soft-bg border border-card-border rounded-2xl text-xs font-medium text-graphite placeholder-graphite-light/60 outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest transition-all"
+                  className="w-full pl-10 pr-10 py-3 bg-emerald-900/20 border border-white/10 rounded-2xl text-xs font-medium text-white placeholder-white/25 outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-400 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-graphite-light hover:text-graphite focus:outline-none"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50 hover:text-white transition-colors focus:outline-none"
                   aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -154,21 +164,22 @@ function LoginPage() {
             {/* Sołectwo dropdown (Register only) */}
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-graphite-light uppercase tracking-wider block ml-1">Moje sołectwo</label>
+                <label className="text-[10px] font-bold text-emerald-200/70 uppercase tracking-wider block ml-1">Moje sołectwo</label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-graphite-light pointer-events-none" />
+                  <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-200/50 pointer-events-none" />
                   <select
                     value={village}
                     onChange={(e) => setVillage(e.target.value)}
-                    className="w-full pl-10 pr-8 py-3 bg-soft-bg border border-card-border rounded-2xl text-xs font-bold text-graphite appearance-none outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest transition-all"
+                    style={{ colorScheme: 'dark' }}
+                    className="w-full pl-10 pr-8 py-3 bg-emerald-900/20 border border-white/10 rounded-2xl text-xs font-bold text-white appearance-none outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-400 transition-all"
                   >
                     {SOLECTWA.map((sol) => (
-                      <option key={sol} value={sol}>
+                      <option key={sol} value={sol} className="bg-emerald-950 text-white font-semibold">
                         Sołectwo {sol}
                       </option>
                     ))}
                   </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-graphite-light pointer-events-none text-[10px] font-bold">▼</div>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-200/50 pointer-events-none text-[10px] font-bold">▼</div>
                 </div>
               </div>
             )}
@@ -177,7 +188,7 @@ function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 gradient-primary text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-forest/15 hover:opacity-95 transition-opacity active:scale-[0.98] disabled:opacity-50 mt-6"
+              className="w-full py-4 bg-gradient-to-r from-[#86efac] to-[#22c55e] text-[#14532d] font-black rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/15 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 transition-all mt-6"
             >
               {loading ? (
                 <>
@@ -194,11 +205,11 @@ function LoginPage() {
           </form>
 
           {/* Quick instructions (Login page help) */}
-          <div className="mt-6 pt-5 border-t border-card-border text-center">
-            <p className="text-[10px] text-graphite-light">
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-[10px] text-emerald-100/50">
               {isLogin ? (
                 <>
-                  Szybkie testowanie: <span className="font-bold text-forest select-all">ania@tymbark.pl</span> hasło: <span className="font-bold text-forest select-all">haslo123</span>
+                  Szybkie testowanie: <span className="font-bold text-[#86efac] select-all">ania@tymbark.pl</span> hasło: <span className="font-bold text-[#86efac] select-all">haslo123</span>
                 </>
               ) : (
                 'Zakładając konto zyskujesz dostęp do lokalnego portfela punktów i mapy.'
