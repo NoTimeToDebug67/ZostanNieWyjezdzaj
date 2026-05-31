@@ -272,26 +272,28 @@ ion-footer {
 }
 
 @media (max-width: 639px) {
-  /* Default/fallback for all mobile browsers */
-  :root {
-    --mobile-nav-padding: calc(8px + max(16px, env(safe-area-inset-bottom, 12px)));
-  }
-
-  /* Specific overrides when Ionic platform body classes are active */
-  .ios {
-    --mobile-nav-padding: calc(6px + env(safe-area-inset-bottom, 12px));
-  }
-
-  .md {
-    --mobile-nav-padding: calc(12px + env(safe-area-inset-bottom, 24px)); /* Double offsets on Android to clear virtual buttons */
-  }
-
+  /* Default/fallback for all mobile browsers - taller paddings */
   .mobile-nav-docked {
-    padding-bottom: var(--mobile-nav-padding) !important;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 12px)) !important;
+  }
+  .mobile-fab-docked {
+    bottom: calc(70px + env(safe-area-inset-bottom, 12px)) !important;
   }
 
-  .mobile-fab-docked {
-    bottom: calc(46px + var(--mobile-nav-padding)) !important;
+  /* Specific iOS webview overrides */
+  .ios .mobile-nav-docked {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 12px)) !important;
+  }
+  .ios .mobile-fab-docked {
+    bottom: calc(66px + env(safe-area-inset-bottom, 12px)) !important;
+  }
+
+  /* Specific Android webview overrides - taller to clear virtual buttons */
+  .md .mobile-nav-docked {
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 16px)) !important;
+  }
+  .md .mobile-fab-docked {
+    bottom: calc(78px + env(safe-area-inset-bottom, 16px)) !important;
   }
 }
 
