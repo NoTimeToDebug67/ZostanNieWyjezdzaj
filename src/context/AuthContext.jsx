@@ -137,6 +137,17 @@ export function AuthProvider({ children }) {
             location: 'Remiza OSP Tymbark'
           });
         }
+        
+        // Merge purchased rewards from localStorage if available
+        const storedPurchased = localStorage.getItem(`tymbark_purchased_rewards_${parsedUser.id}`);
+        if (storedPurchased) {
+          const purchasedList = JSON.parse(storedPurchased);
+          if (!parsedUser.rewards) parsedUser.rewards = [];
+          const existingIds = new Set(parsedUser.rewards.map(r => r.id));
+          const newPurchased = purchasedList.filter(r => !existingIds.has(r.id));
+          parsedUser.rewards = [...newPurchased, ...parsedUser.rewards];
+        }
+
         setCurrentUser(parsedUser);
         localStorage.setItem('tymbark_session', JSON.stringify(parsedUser));
       }
@@ -199,6 +210,14 @@ export function AuthProvider({ children }) {
         location: e.location,
       }));
 
+      // Load purchased rewards from localStorage for Supabase users to preserve them
+      const storedPurchased = localStorage.getItem(`tymbark_purchased_rewards_${authUser.id}`);
+      const purchasedList = storedPurchased ? JSON.parse(storedPurchased) : [];
+      const formattedPurchased = purchasedList.map(r => ({
+        ...r,
+        validUntil: new Date(r.validUntil)
+      }));
+
       // Set combined user state
       setCurrentUser({
         id: authUser.id,
@@ -213,8 +232,9 @@ export function AuthProvider({ children }) {
           votes: profile.votes_count,
         },
         joinedEvents: formattedEvents,
-        // Mock rewards for the demo
+        // Merge persistent purchased rewards with default demo rewards
         rewards: [
+          ...formattedPurchased,
           {
             id: 'r1',
             title: 'Piekarnia u Kasi',
@@ -619,8 +639,80 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // 7. Redeem Reward / Buy Discount
+  const redeemReward = async (rewardData) => {
+    if (!currentUser) return { success: false, error: 'Brak zalogowanego użytkownika' };
+    if (currentUser.points < rewardData.price) {
+      return { success: false, error: 'Za mało punktów' };
+    }
+
+    const newReward = {
+      id: `r-${Date.now()}`,
+      title: rewardData.title,
+      discount: rewardData.discount,
+      description: rewardData.description,
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      emoji: rewardData.emoji,
+      code: rewardData.code || 'TYM-CODE-2026'
+    };
+
+    // Save to LocalStorage persistent purchased rewards list for mock/demo persistence
+    try {
+      const storedPurchased = localStorage.getItem(`tymbark_purchased_rewards_${currentUser.id}`);
+      const purchasedList = storedPurchased ? JSON.parse(storedPurchased) : [];
+      purchasedList.unshift(newReward);
+      localStorage.setItem(`tymbark_purchased_rewards_${currentUser.id}`, JSON.stringify(purchasedList));
+    } catch (e) {
+      console.error('Błąd zapisu zakupionej zniżki w localStorage:', e);
+    }
+
+    const newPoints = currentUser.points - rewardData.price;
+
+    if (!isSupabaseActive) {
+      // Mock redeem
+      const updatedUser = {
+        ...currentUser,
+        points: newPoints,
+        rewards: [newReward, ...(currentUser.rewards || [])]
+      };
+      setCurrentUser(updatedUser);
+      setUsers(prev => prev.map(u => u.email === currentUser.email ? updatedUser : u));
+      
+      // Update session storage too so it persists across refreshes
+      localStorage.setItem('tymbark_session', JSON.stringify(updatedUser));
+      return { success: true };
+    }
+
+    // Real Supabase update
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ points: newPoints })
+        .eq('id', currentUser.id);
+
+      if (error) throw error;
+
+      // Update state locally
+      setCurrentUser(prev => ({
+        ...prev,
+        points: newPoints,
+        rewards: [
+          {
+            ...newReward,
+            validUntil: new Date(newReward.validUntil)
+          },
+          ...(prev.rewards || [])
+        ]
+      }));
+      return { success: true };
+    } catch (err) {
+      console.error('Błąd podczas wymiany punktów w Supabase:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, leaveEvent, isSupabaseActive, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, leaveEvent, redeemReward, isSupabaseActive, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
