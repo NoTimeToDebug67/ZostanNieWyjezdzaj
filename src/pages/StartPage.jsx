@@ -8,18 +8,28 @@ import { getAssistantSuggestion } from '../utils/assistantEngine'
 const cityAnnouncements = [
   {
     id: 1,
+    type: 'alert',
     title: 'Zmiana godzin pracy urzędu',
     body: 'Od 1 grudnia urząd gminy czynny w poniedziałki do 18:00. Pozostałe dni bez zmian.',
     urgent: true,
   },
   {
     id: 2,
-    title: 'Odbiór odpadów wielkogabarytowych',
-    body: 'Zbiórka 15 grudnia. Odpady wystawiamy do godz. 6:00 przed posesję.',
+    type: 'poll',
+    title: 'Ankieta: Gdzie postawić nowe ławki?',
+    body: 'Rada Sołecka pyta mieszkańców o opinię. Głosuj!',
     urgent: false,
+    options: [
+      { id: 'a', label: 'Przy boisku szkolnym', votes: 34 },
+      { id: 'b', label: 'W parku miejskim', votes: 51 },
+      { id: 'c', label: 'Na rynku', votes: 22 },
+    ],
+    totalVotes: 107,
+    endsIn: '2 dni',
   },
   {
     id: 3,
+    type: 'alert',
     title: 'Przerwa w dostawie wody',
     body: '10 grudnia, godz. 8:00–14:00, ul. Kościelna i Zamieście. Przepraszamy za utrudnienia.',
     urgent: true,
@@ -54,6 +64,7 @@ function StartPage({ onNavigate }) {
   const { currentUser } = useAuth()
   const [announcementIndex, setAnnouncementIndex] = useState(0)
   const [suggestion, setSuggestion] = useState(null)
+  const [votedPoll, setVotedPoll] = useState(null) // id of voted option
 
   // Generate suggestion whenever currentUser changes (e.g. points change or event join)
   useEffect(() => {
@@ -94,20 +105,84 @@ function StartPage({ onNavigate }) {
         </button>
       </div>
 
-      {/* City announcement slider */}
+      {/* City announcements + polls slider */}
       <div className="relative">
-        <div className="bg-white rounded-2xl border border-card-border p-4 shadow-card">
-          <div className="flex items-start justify-between gap-2 mb-1.5">
-            <div className="flex items-center gap-2">
-              {current.urgent && (
-                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse-soft flex-shrink-0" />
-              )}
-              <span className="text-[10px] font-bold text-forest uppercase tracking-wider">Komunikat gminy</span>
-            </div>
-            <span className="text-[10px] text-graphite-light">{announcementIndex + 1}/{cityAnnouncements.length}</span>
-          </div>
-          <h3 className="text-sm font-bold text-graphite mb-1">{current.title}</h3>
-          <p className="text-xs text-graphite-light leading-relaxed">{current.body}</p>
+        <div className="bg-white rounded-2xl border border-card-border p-4 shadow-card min-h-[140px] flex flex-col justify-between">
+          {current.type === 'poll' ? (
+            /* === ANKIETA === */
+            <>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-bold text-forest uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse-soft" />
+                    Ankieta sołecka
+                  </span>
+                  <span className="text-[9px] text-graphite-light">Kończy się za {current.endsIn}</span>
+                </div>
+                <h3 className="text-[13px] font-bold text-graphite mb-2">{current.title}</h3>
+
+                {/* Compact poll options */}
+                <div className="space-y-1.5">
+                  {current.options.map((option) => {
+                    const isVoted = votedPoll === option.id
+                    const hasVoted = votedPoll !== null
+
+                    return !hasVoted ? (
+                      /* Before voting - selectable options */
+                      <button
+                        key={option.id}
+                        onClick={() => setVotedPoll(option.id)}
+                        className="w-full rounded-lg bg-soft-bg border border-card-border px-3 py-1.5 text-left hover:border-forest/40 hover:bg-forest/5 active:scale-[0.98] transition-all"
+                      >
+                        <span className="text-[10px] font-medium text-graphite">{option.label}</span>
+                      </button>
+                    ) : null
+                  })}
+
+                  {/* After voting - bar chart */}
+                  {votedPoll && (
+                    <div className="flex items-end justify-around gap-2 pt-1">
+                      {current.options.map((option) => {
+                        const percentage = Math.round((option.votes / current.totalVotes) * 100)
+                        const isVoted = votedPoll === option.id
+                        const maxH = 44 // max bar height in px
+                        const barH = Math.max(12, (percentage / 100) * maxH)
+
+                        return (
+                          <div key={option.id} className="flex flex-col items-center gap-1 flex-1">
+                            <span className={`text-[9px] font-bold ${isVoted ? 'text-forest' : 'text-graphite-light'}`}>{percentage}%</span>
+                            <div
+                              className={`w-full rounded-md transition-all duration-700 ${isVoted ? 'bg-forest' : 'bg-gray-200'}`}
+                              style={{ height: `${barH}px` }}
+                            />
+                            <span className={`text-[8px] leading-tight text-center ${isVoted ? 'font-bold text-forest' : 'font-medium text-graphite-light'}`}>
+                              {option.label}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* === ALERT === */
+            <>
+              <div>
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-2">
+                    {current.urgent && (
+                      <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse-soft flex-shrink-0" />
+                    )}
+                    <span className="text-[10px] font-bold text-forest uppercase tracking-wider">Komunikat gminy</span>
+                  </div>
+                </div>
+                <h3 className="text-[13px] font-bold text-graphite mb-1">{current.title}</h3>
+                <p className="text-xs text-graphite-light leading-relaxed">{current.body}</p>
+              </div>
+            </>
+          )}
 
           {/* Navigation dots + arrows */}
           <div className="flex items-center justify-between mt-3">
