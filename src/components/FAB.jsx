@@ -29,7 +29,7 @@ function FAB({ isOpen, onToggle, onAction }) {
   const radius = 76
 
   return (
-    <div className="absolute bottom-[calc(20px+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-[1003]">
+    <div className="fixed sm:absolute bottom-[calc(20px+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-[1003]">
       {/* Radial action buttons */}
       {fabActions.map((action, index) => {
         const angleRad = (action.angle * Math.PI) / 180
