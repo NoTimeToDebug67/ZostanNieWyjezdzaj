@@ -271,4 +271,28 @@ ion-footer {
   box-shadow: none !important;
 }
 
+@media (max-width: 639px) {
+  /* Default/fallback for all mobile browsers */
+  :root {
+    --mobile-nav-padding: calc(8px + max(16px, env(safe-area-inset-bottom, 12px)));
+  }
+
+  /* Specific overrides when Ionic platform body classes are active */
+  .ios {
+    --mobile-nav-padding: calc(6px + env(safe-area-inset-bottom, 12px));
+  }
+
+  .md {
+    --mobile-nav-padding: calc(12px + env(safe-area-inset-bottom, 24px)); /* Double offsets on Android to clear virtual buttons */
+  }
+
+  .mobile-nav-docked {
+    padding-bottom: var(--mobile-nav-padding) !important;
+  }
+
+  .mobile-fab-docked {
+    bottom: calc(46px + var(--mobile-nav-padding)) !important;
+  }
+}
+
 
