@@ -991,7 +991,7 @@ function CommunityPage() {
       {selectedEvent && (
         <div className="fixed inset-0 z-[1020] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-          <div className="relative w-full max-w-md bg-white rounded-t-4xl overflow-hidden shadow-2xl animate-slide-up h-[45%] flex flex-col">
+          <div className="relative w-full max-w-md bg-white rounded-t-4xl overflow-hidden shadow-2xl animate-slide-up h-[65%] flex flex-col">
             <button
               onClick={() => setSelectedEvent(null)}
               className="absolute top-3 right-3 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center z-10 shadow-sm active:scale-95"

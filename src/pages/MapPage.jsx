@@ -729,7 +729,7 @@ function MapPage() {
             transform: isDragging || dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
             transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          className="absolute bottom-0 inset-x-0 h-[55%] z-[1020] animate-slide-up bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border"
+          className="absolute bottom-0 inset-x-0 h-[65%] z-[1020] animate-slide-up bg-white rounded-t-4xl shadow-2xl flex flex-col overflow-hidden border-t border-card-border"
         >
           {/* Grab bar for dragging down pin details */}
           <div
