@@ -141,22 +141,30 @@
   animation: radial-appear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Hide all scrollbars */
+/* Global scrollbar removal for native mobile app feel */
 ::-webkit-scrollbar {
-  display: none;
-}
-* {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+/* Ionic content scrollbar removal */
+ion-content::part(scroll) {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 
 /* Leaflet map custom overrides */
 .leaflet-container {
@@ -176,10 +184,10 @@
   color: #1b4332 !important; /* forest */
   font-weight: 700 !important;
   font-size: 10px !important;
-  text-shadow: 
-    -1.5px -1.5px 0 #f8faf9, 
-     1.5px -1.5px 0 #f8faf9, 
-    -1.5px  1.5px 0 #f8faf9, 
+  text-shadow:
+    -1.5px -1.5px 0 #f8faf9,
+     1.5px -1.5px 0 #f8faf9,
+    -1.5px  1.5px 0 #f8faf9,
      1.5px  1.5px 0 #f8faf9;
   white-space: nowrap !important;
   pointer-events: none !important;
