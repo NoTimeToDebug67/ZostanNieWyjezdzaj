@@ -66,21 +66,7 @@ function AppContent() {
 
   return (
     <div className="relative flex-1 flex flex-col h-full overflow-hidden bg-soft-bg">
-      {/* Status bar simulation */}
-      <div className="sticky top-0 z-50 h-11 bg-soft-bg flex items-center justify-between px-6 flex-shrink-0">
-        <span className="text-[11px] font-semibold text-graphite">9:41</span>
-        <div className="flex items-center gap-1.5">
-          <div className="flex gap-0.5">
-            <div className="w-1.5 h-2 bg-graphite rounded-sm" />
-            <div className="w-1.5 h-2.5 bg-graphite rounded-sm" />
-            <div className="w-1.5 h-3 bg-graphite rounded-sm" />
-            <div className="w-1.5 h-3.5 bg-graphite rounded-sm" />
-          </div>
-          <div className="w-6 h-3 border border-graphite rounded-sm ml-1 relative">
-            <div className="absolute inset-0.5 bg-graphite rounded-[1px]" style={{ width: '70%' }} />
-          </div>
-        </div>
-      </div>
+
 
       {/* Overlay when FAB is open */}
       {fabOpen && (
@@ -144,7 +130,7 @@ function App() {
           <div className="hidden sm:flex absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-50 items-center justify-center pointer-events-none">
             <div className="w-2.5 h-2.5 bg-[#101010] rounded-full absolute right-4 border border-slate-900" />
           </div>
-          
+
           <AppContent />
         </div>
       </div>
