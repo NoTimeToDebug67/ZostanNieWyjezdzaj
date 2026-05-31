@@ -1025,7 +1025,7 @@ function CommunityPage() {
 
             {/* Fixed footer action buttons */}
             <div 
-              className="p-5 pt-3 border-t border-gray-100 bg-white flex-shrink-0 pb-20"
+              className="p-5 pt-3 border-t border-gray-100 bg-white flex-shrink-0 pb-36"
             >
               {(() => {
                 const isJoined = canCreateGroup(selectedEvent)
@@ -1034,7 +1034,7 @@ function CommunityPage() {
 
                 if (isPast) {
                   return (
-                    <div className="mt-4 space-y-2" style={{ transform: 'translateY(-15%)' }}>
+                    <div className="mt-4 space-y-2" style={{ transform: 'translateY(-20%)' }}>
                       <div className="w-full py-2.5 bg-gray-100 rounded-xl text-[11px] text-gray-500 font-bold flex items-center justify-center gap-1.5 border border-gray-200">
                         <span>⌛ Wydarzenie archiwalne</span>
                         {isJoined && <span className="text-forest bg-forest/10 px-1.5 py-0.5 rounded-full text-[9px] ml-1.5">Brałeś udział</span>}
@@ -1068,7 +1068,7 @@ function CommunityPage() {
                 }
 
                 return (
-                  <div className="space-y-2" style={{ transform: 'translateY(-15%)' }}>
+                  <div className="space-y-2" style={{ transform: 'translateY(-20%)' }}>
                     {/* QR code for attendance - shown when joined */}
                     {isJoined && (
                       <div className="flex items-center gap-3 p-2.5 bg-soft-bg rounded-xl border border-card-border">
@@ -1217,7 +1217,7 @@ function CommunityPage() {
             </div>
 
             {/* Fixed footer action */}
-            <div className="p-5 pt-3 pb-24 border-t border-gray-100 bg-white flex-shrink-0">
+            <div className="p-5 pt-3 pb-36 border-t border-gray-100 bg-white flex-shrink-0">
               <button
                 onClick={handleAddEvent}
                 disabled={!newEvent.title || !newEvent.date || !newEvent.location}
