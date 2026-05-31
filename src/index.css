@@ -249,3 +249,21 @@
   color: #6b7280 !important;
 }
 
+/* Ionic CSS Framework Overrides */
+:root {
+  --ion-background-color: #f8faf9 !important;
+  --ion-background-color-rgb: 248, 250, 249 !important;
+}
+
+ion-page, ion-content {
+  --background: #f8faf9;
+}
+
+ion-footer {
+  --background: transparent !important;
+  background: transparent !important;
+  --border-style: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
