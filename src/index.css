@@ -272,28 +272,28 @@ ion-footer {
 }
 
 @media (max-width: 639px) {
-  /* Default/fallback for all mobile browsers - taller paddings */
+  /* Default/fallback for all mobile browsers - doubled paddings */
   .mobile-nav-docked {
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 12px)) !important;
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 24px)) !important;
   }
   .mobile-fab-docked {
-    bottom: calc(70px + env(safe-area-inset-bottom, 12px)) !important;
+    bottom: calc(94px + env(safe-area-inset-bottom, 24px)) !important;
   }
 
   /* Specific iOS webview overrides */
   .ios .mobile-nav-docked {
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 12px)) !important;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 24px)) !important;
   }
   .ios .mobile-fab-docked {
-    bottom: calc(66px + env(safe-area-inset-bottom, 12px)) !important;
+    bottom: calc(86px + env(safe-area-inset-bottom, 24px)) !important;
   }
 
-  /* Specific Android webview overrides - taller to clear virtual buttons */
+  /* Specific Android webview overrides - doubled to clear virtual buttons */
   .md .mobile-nav-docked {
-    padding-bottom: calc(32px + env(safe-area-inset-bottom, 16px)) !important;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 32px)) !important;
   }
   .md .mobile-fab-docked {
-    bottom: calc(78px + env(safe-area-inset-bottom, 16px)) !important;
+    bottom: calc(110px + env(safe-area-inset-bottom, 32px)) !important;
   }
 }
 
