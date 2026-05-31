@@ -80,7 +80,7 @@ function LoginPage() {
             <span className="text-[#14532d] text-2xl font-black tracking-tight">T</span>
           </div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-[#e2fbf0] to-[#86efac] tracking-tight leading-none drop-shadow-[0_2px_8px_rgba(20,83,45,0.4)]">
-            Tymbark Hub
+            Tu Działam
           </h1>
           <p className="text-xs text-emerald-100/90 mt-2 font-bold tracking-wide drop-shadow-[0_1px_3px_rgba(20,83,45,0.5)]">
             Poznaj i współtwórz swoją okolicę

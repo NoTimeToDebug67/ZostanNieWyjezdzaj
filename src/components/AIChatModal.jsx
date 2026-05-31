@@ -156,7 +156,7 @@ function AIChatModal({ isOpen, onClose }) {
     }
 
     // 5. Default fallback
-    return `Ciekawa sprawa! Jako Asystent Tymbark AI skupiam się na wspieraniu życia w naszej gminie. \n\nMożesz zapytać mnie o:\n• **Najbliższe wydarzenia** (np. *„co dzieje się w okolicy?”*)\n• **Punkty w portfelu i nagrody** (np. *„ile mam punktów?”*)\n• **Zgłaszanie usterek** (np. *„jak zgłosić problem z latarnią?”*)\n\nChętnie odpowiem na każde z tych pytań!`
+    return `Ciekawa sprawa! Jako Sotys AI skupiam się na wspieraniu życia w naszej gminie. \n\nMożesz zapytać mnie o:\n• **Najbliższe wydarzenia** (np. *„co dzieje się w okolicy?”*)\n• **Punkty w portfelu i nagrody** (np. *„ile mam punktów?”*)\n• **Zgłaszanie usterek** (np. *„jak zgłosić problem z latarnią?”*)\n\nChętnie odpowiem na każde z tych pytań!`
   }
 
   // Handle message submission
@@ -281,7 +281,7 @@ function AIChatModal({ isOpen, onClose }) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xs font-bold text-graphite">
-                  Asystent Tymbark AI
+                  Sotys AI
                 </h3>
               </div>
               <p className="text-[9px] text-graphite-light font-semibold mt-0.5">Baza wiedzy gminy i mieszkańców</p>
