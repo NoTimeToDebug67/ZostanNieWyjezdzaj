@@ -218,7 +218,7 @@ function LoginPage() {
                 type="button"
                 onClick={handleGuestLogin}
                 disabled={loading}
-                className="w-full py-3.5 mt-2 bg-transparent hover:bg-forest/5 text-forest border border-forest/30 font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50"
+                className="w-full py-3.5 mt-2 bg-white/5 hover:bg-white/10 text-emerald-100 border border-white/10 hover:border-white/20 font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 <span>Uruchom jako Gość</span>
               </button>
@@ -226,8 +226,8 @@ function LoginPage() {
           </form>
 
           {/* Instructions */}
-          <div className="mt-6 pt-5 border-t border-card-border text-center">
-            <p className="text-[10px] text-graphite-light font-medium">
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-[10px] text-emerald-100/60 font-medium tracking-wide">
               Zaloguj się na swoje konto lub wejdź jako gość, aby przetestować aplikację.
             </p>
           </div>
