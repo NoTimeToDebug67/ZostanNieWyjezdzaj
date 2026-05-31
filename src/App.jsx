@@ -71,7 +71,7 @@ function AppContent() {
       {/* Overlay when FAB is open */}
       {fabOpen && (
         <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[1001] transition-opacity"
           onClick={() => setFabOpen(false)}
           aria-hidden="true"
         />

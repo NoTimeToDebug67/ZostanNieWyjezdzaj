@@ -265,7 +265,7 @@ function AIChatModal({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[1004] flex items-end justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={onClose} />
 

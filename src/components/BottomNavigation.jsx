@@ -13,7 +13,7 @@ const tabs = [
 function BottomNavigation({ activeTab, onTabChange }) {
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 w-full z-[80]"
+      className="absolute bottom-0 left-0 right-0 w-full z-[1002]"
       role="navigation"
       aria-label="Nawigacja główna"
     >

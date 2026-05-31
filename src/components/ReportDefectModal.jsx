@@ -157,7 +157,7 @@ function ReportDefectModal({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[1004] flex items-end justify-center">
       {/* CSS Animations style block */}
       <style>{`
         @keyframes customPulse {
