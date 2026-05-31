@@ -277,7 +277,7 @@ ion-footer {
     padding-bottom: calc(48px + env(safe-area-inset-bottom, 24px)) !important;
   }
   .mobile-fab-docked {
-    bottom: calc(94px + env(safe-area-inset-bottom, 24px)) !important;
+    bottom: calc(70px + env(safe-area-inset-bottom, 24px)) !important;
   }
 
   /* Specific iOS webview overrides */
@@ -285,7 +285,7 @@ ion-footer {
     padding-bottom: calc(40px + env(safe-area-inset-bottom, 24px)) !important;
   }
   .ios .mobile-fab-docked {
-    bottom: calc(86px + env(safe-area-inset-bottom, 24px)) !important;
+    bottom: calc(62px + env(safe-area-inset-bottom, 24px)) !important;
   }
 
   /* Specific Android webview overrides - doubled to clear virtual buttons */
@@ -293,7 +293,7 @@ ion-footer {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 32px)) !important;
   }
   .md .mobile-fab-docked {
-    bottom: calc(110px + env(safe-area-inset-bottom, 32px)) !important;
+    bottom: calc(86px + env(safe-area-inset-bottom, 32px)) !important;
   }
 }
 

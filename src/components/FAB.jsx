@@ -7,7 +7,7 @@ const fabActions = [
     label: 'Zgłoś',
     icon: AlertTriangle,
     color: 'bg-red-500',
-    angle: -144,
+    angle: -155,
   },
   {
     id: 'initiative',
@@ -21,7 +21,7 @@ const fabActions = [
     label: 'Pytaj',
     icon: MessageCircle,
     color: 'bg-forest-mid',
-    angle: -40,
+    angle: -25,
   },
 ]
 
@@ -29,7 +29,7 @@ function FAB({ isOpen, onToggle, onAction }) {
   const radius = 76
 
   return (
-    <div className="fixed sm:absolute left-1/2 -translate-x-1/2 z-[1003] mobile-fab-docked">
+    <div className="fixed sm:absolute bottom-[calc(20px+env(safe-area-inset-bottom))] sm:bottom-[22px] left-1/2 -translate-x-1/2 z-[1003] mobile-fab-docked">
       {/* Radial action buttons */}
       {fabActions.map((action, index) => {
         const angleRad = (action.angle * Math.PI) / 180
@@ -57,7 +57,9 @@ function FAB({ isOpen, onToggle, onAction }) {
             >
               <action.icon size={17} />
             </button>
-            <span className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-800 bg-white/95 border border-card-border rounded-xl px-2 py-0.5 shadow-glass text-center whitespace-pre-line pointer-events-none transition-all duration-200 w-[64px] leading-tight">
+            <span className={`absolute top-full mt-1.5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-slate-800 bg-white/95 border border-card-border rounded-xl px-2 py-0.5 shadow-glass text-center whitespace-pre-line pointer-events-none transition-all duration-200 leading-tight ${
+              action.id === 'initiative' ? 'w-[84px]' : 'w-[64px]'
+            }`}>
               {action.label}
             </span>
           </div>
