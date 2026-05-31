@@ -272,11 +272,32 @@ ion-footer {
 }
 
 @media (max-width: 639px) {
-  .mobile-nav-margin {
-    margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  :root {
+    --mobile-nav-padding: calc(6px + env(safe-area-inset-bottom, 12px));
   }
-  .mobile-fab-bottom {
-    bottom: calc(38px + env(safe-area-inset-bottom, 0px)) !important;
+
+  .ios {
+    --mobile-nav-padding: calc(6px + env(safe-area-inset-bottom, 12px));
+  }
+
+  .md {
+    --mobile-nav-padding: calc(12px + env(safe-area-inset-bottom, 24px));
+  }
+
+  .mobile-nav-docked {
+    margin-bottom: 0px !important;
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+    border-radius: 0px !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    padding-bottom: var(--mobile-nav-padding) !important;
+  }
+
+  .mobile-fab-docked {
+    bottom: calc(46px + var(--mobile-nav-padding)) !important;
   }
 }
 

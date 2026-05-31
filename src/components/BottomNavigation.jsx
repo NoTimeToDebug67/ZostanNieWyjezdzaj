@@ -19,7 +19,7 @@ function BottomNavigation({ activeTab, onTabChange }) {
         role="navigation"
         aria-label="Nawigacja główna"
       >
-        <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mobile-nav-margin sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100">
+        <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mobile-nav-docked sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100">
           <div className="grid grid-cols-5 items-center pt-2 pb-1">
             {tabs.map((tab) => {
               if (tab.id === '_spacer') {
