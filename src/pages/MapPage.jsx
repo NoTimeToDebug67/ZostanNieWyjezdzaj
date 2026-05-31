@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Users, MapPin, X, Layers, Search, Loader2, Compass, Clock, Calendar, Navigation } from 'lucide-react'
+import { IonPage, IonContent } from '@ionic/react'
 import { MapContainer, TileLayer, GeoJSON, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -368,7 +369,9 @@ function MapPage() {
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-t-3xl z-10 bg-soft-bg">
+    <IonPage>
+      <IonContent scrollY={false} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div className="relative w-full h-full overflow-hidden rounded-t-3xl z-10 bg-soft-bg">
       {/* Loading state overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-40 flex flex-col items-center justify-center gap-3">
@@ -841,7 +844,9 @@ function MapPage() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   )
 }
 

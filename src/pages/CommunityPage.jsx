@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Calendar, MapPin, Users, Clock, Check, Plus, ChevronLeft, ChevronRight, Loader2, User, X, MessageSquare, Send, ArrowLeft, ChevronDown, Navigation } from 'lucide-react'
+import { IonPage, IonContent } from '@ionic/react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabaseClient'
 import mockEventsStatic from '../data/mockEvents'
@@ -666,7 +667,9 @@ function CommunityPage() {
     const isMember = group.members.includes(activeUserName)
 
     return (
-      <div className="px-4 flex flex-col h-full pb-28 pt-2">
+      <IonPage>
+        <IonContent scrollY={false} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+          <div className="px-4 flex flex-col h-full pb-28 pt-2">
         {/* Header */}
         <div className="flex items-center gap-3 py-2 mb-3">
           <button onClick={() => setSelectedGroup(null)} className="w-8 h-8 rounded-full bg-soft-bg flex items-center justify-center">
@@ -733,12 +736,16 @@ function CommunityPage() {
           </button>
         )}
       </div>
-    )
+    </IonContent>
+  </IonPage>
+)
   }
 
   // ===== MAIN RENDER =====
   return (
-    <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
+    <IonPage>
+      <IonContent scrollY={true} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div className="px-4 space-y-4 pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Społeczność</h1>
@@ -1214,7 +1221,9 @@ function CommunityPage() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   )
 }
 

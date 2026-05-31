@@ -9,6 +9,7 @@ import {
   HelpCircle,
   Palette,
 } from 'lucide-react'
+import { IonPage, IonContent } from '@ionic/react'
 import { useAuth } from '../context/AuthContext'
 
 function ProfilePage() {
@@ -28,7 +29,9 @@ function ProfilePage() {
   const userInitial = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'A'
 
   return (
-    <div className="px-5 pt-4 space-y-5 flex-1 overflow-y-auto pb-28">
+    <IonPage>
+      <IonContent scrollY={true} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div className="px-5 pt-4 space-y-5 pb-28">
       {/* Profile card */}
       <div className="card-base p-5">
         <div className="flex items-center gap-4">
@@ -83,7 +86,9 @@ function ProfilePage() {
         <LogOut size={16} />
         Wyloguj się
       </button>
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   )
 }
 

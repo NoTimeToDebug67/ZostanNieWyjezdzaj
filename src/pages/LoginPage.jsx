@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, MapPin, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
+import { IonPage, IonContent } from '@ionic/react';
 import { useAuth } from '../context/AuthContext';
 
 const SOLECTWA = ['Tymbark', 'Podłopień', 'Zawadka', 'Piekiełko', 'Zamieście'];
@@ -59,10 +60,12 @@ function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col justify-center bg-cover bg-center bg-[#14532d] px-6 py-12 relative overflow-hidden"
-      style={{ backgroundImage: `url('${import.meta.env.BASE_URL}login_bg.svg')` }}
-    >
+    <IonPage>
+      <IonContent scrollY={true} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div
+          className="min-h-full w-full flex flex-col justify-center bg-cover bg-center bg-[#14532d] px-6 py-12 relative overflow-hidden"
+          style={{ backgroundImage: `url('${import.meta.env.BASE_URL}login_bg.svg')` }}
+        >
       {/* Dark background overlay to improve contrast */}
       <div className="absolute inset-0 bg-black/45 pointer-events-none z-0" />
 
@@ -233,7 +236,9 @@ function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   );
 }
 

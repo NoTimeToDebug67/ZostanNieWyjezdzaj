@@ -1,5 +1,6 @@
 import React from 'react'
 import { Home, Map, Users, Gift } from 'lucide-react'
+import { IonFooter } from '@ionic/react'
 
 const tabs = [
   { id: 'start', label: 'Start', icon: Home },
@@ -12,41 +13,43 @@ const tabs = [
 
 function BottomNavigation({ activeTab, onTabChange }) {
   return (
-    <nav
-      className="absolute bottom-0 left-0 right-0 w-full z-[1002]"
-      role="navigation"
-      aria-label="Nawigacja główna"
-    >
-      <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mb-8 sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100 safe-bottom">
-        <div className="grid grid-cols-5 items-center pt-2 pb-1">
-          {tabs.map((tab) => {
-            if (tab.id === '_spacer') {
-              return <div key={tab.id} aria-hidden="true" />
-            }
+    <IonFooter className="ion-no-border bg-transparent z-[1002] absolute bottom-0 left-0 right-0 w-full pointer-events-none">
+      <nav
+        className="w-full pointer-events-auto"
+        role="navigation"
+        aria-label="Nawigacja główna"
+      >
+        <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mb-8 sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100 safe-bottom">
+          <div className="grid grid-cols-5 items-center pt-2 pb-1">
+            {tabs.map((tab) => {
+              if (tab.id === '_spacer') {
+                return <div key={tab.id} aria-hidden="true" />
+              }
 
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
 
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className={`flex flex-col items-center justify-center gap-0.5 py-1 transition-all duration-200 ${
-                  isActive ? 'text-forest' : 'text-gray-400'
-                }`}
-                aria-label={tab.label}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <Icon size={20} strokeWidth={isActive ? 2.2 : 1.6} />
-                <span className={`text-[9px] font-medium ${isActive ? 'text-forest' : 'text-gray-400'}`}>
-                  {tab.label}
-                </span>
-              </button>
-            )
-          })}
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onTabChange(tab.id)}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 transition-all duration-200 ${
+                    isActive ? 'text-forest' : 'text-gray-400'
+                  }`}
+                  aria-label={tab.label}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon size={20} strokeWidth={isActive ? 2.2 : 1.6} />
+                  <span className={`text-[9px] font-medium ${isActive ? 'text-forest' : 'text-gray-400'}`}>
+                    {tab.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </IonFooter>
   )
 }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { setupIonicReact, IonApp } from '@ionic/react'
 import BottomNavigation from './components/BottomNavigation'
 import FAB from './components/FAB'
 import ReportDefectModal from './components/ReportDefectModal'
@@ -10,6 +11,14 @@ import WalletPage from './pages/WalletPage'
 import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
+
+// Import Ionic styles
+import '@ionic/react/css/core.css'
+import '@ionic/react/css/normalize.css'
+import '@ionic/react/css/structure.css'
+import '@ionic/react/css/typography.css'
+
+setupIonicReact()
 
 function AppContent() {
   const { currentUser } = useAuth()
@@ -131,7 +140,9 @@ function App() {
             <div className="w-2.5 h-2.5 bg-[#101010] rounded-full absolute right-4 border border-slate-900" />
           </div>
 
-          <AppContent />
+          <IonApp className="w-full h-full bg-transparent">
+            <AppContent />
+          </IonApp>
         </div>
       </div>
     </AuthProvider>
