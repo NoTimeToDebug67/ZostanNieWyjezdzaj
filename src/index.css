@@ -271,3 +271,12 @@ ion-footer {
   box-shadow: none !important;
 }
 
+@media (max-width: 639px) {
+  .mobile-nav-margin {
+    margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .mobile-fab-bottom {
+    bottom: calc(38px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+

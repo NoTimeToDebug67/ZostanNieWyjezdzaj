@@ -1,6 +1,6 @@
 import React from 'react'
 import { Home, Map, Users, Gift } from 'lucide-react'
-import { IonFooter } from '@ionic/react'
+
 
 const tabs = [
   { id: 'start', label: 'Start', icon: Home },
@@ -13,13 +13,13 @@ const tabs = [
 
 function BottomNavigation({ activeTab, onTabChange }) {
   return (
-    <IonFooter className="ion-no-border bg-transparent z-[1002] absolute bottom-0 left-0 right-0 w-full pointer-events-none">
+    <div className="z-[1002] absolute bottom-0 left-0 right-0 w-full pointer-events-none">
       <nav
         className="w-full pointer-events-auto"
         role="navigation"
         aria-label="Nawigacja główna"
       >
-        <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mb-12 sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100 safe-bottom">
+        <div className="bg-white/95 backdrop-blur-md border border-gray-150 shadow-xl rounded-2xl mx-4 mobile-nav-margin sm:mx-0 sm:mb-0 sm:rounded-none sm:border-0 sm:border-t sm:border-gray-100">
           <div className="grid grid-cols-5 items-center pt-2 pb-1">
             {tabs.map((tab) => {
               if (tab.id === '_spacer') {
@@ -49,7 +49,7 @@ function BottomNavigation({ activeTab, onTabChange }) {
           </div>
         </div>
       </nav>
-    </IonFooter>
+    </div>
   )
 }
 
