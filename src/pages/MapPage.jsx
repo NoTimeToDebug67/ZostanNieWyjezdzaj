@@ -800,6 +800,7 @@ function MapPage() {
                   window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedPin.latitude},${selectedPin.longitude}`, '_blank');
                 }}
                 className="w-full py-3.5 gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-opacity active:scale-[0.98]"
+                style={{ transform: 'translateY(-15%)' }}
               >
                 <Navigation size={14} />
                 Nawiguj do miejsca
@@ -809,7 +810,7 @@ function MapPage() {
                 const isJoined = currentUser && currentUser.joinedEvents.some(e => e.id.toString() === selectedPin.id.toString());
                 const hasCoords = selectedPin.latitude && selectedPin.longitude;
                 return (
-                  <div className="flex gap-3">
+                  <div className="flex gap-3" style={{ transform: 'translateY(-15%)' }}>
                     {hasCoords && (
                       <button
                         onClick={() => {

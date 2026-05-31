@@ -989,7 +989,7 @@ function CommunityPage() {
 
       {/* ===== EVENT DETAIL POPUP ===== */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[1020] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
           <div className="relative w-full max-w-md bg-white rounded-t-4xl overflow-hidden shadow-2xl animate-slide-up h-[45%] flex flex-col">
             <button
@@ -1034,7 +1034,7 @@ function CommunityPage() {
 
                 if (isPast) {
                   return (
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-4 space-y-2" style={{ transform: 'translateY(-15%)' }}>
                       <div className="w-full py-2.5 bg-gray-100 rounded-xl text-[11px] text-gray-500 font-bold flex items-center justify-center gap-1.5 border border-gray-200">
                         <span>⌛ Wydarzenie archiwalne</span>
                         {isJoined && <span className="text-forest bg-forest/10 px-1.5 py-0.5 rounded-full text-[9px] ml-1.5">Brałeś udział</span>}
@@ -1068,7 +1068,7 @@ function CommunityPage() {
                 }
 
                 return (
-                  <div className="space-y-2">
+                  <div className="space-y-2" style={{ transform: 'translateY(-15%)' }}>
                     {/* QR code for attendance - shown when joined */}
                     {isJoined && (
                       <div className="flex items-center gap-3 p-2.5 bg-soft-bg rounded-xl border border-card-border">
@@ -1133,7 +1133,7 @@ function CommunityPage() {
 
       {/* ===== ADD EVENT MODAL ===== */}
       {showAddEvent && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[1020] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAddEvent(false)} />
           <div className="relative w-full max-w-md bg-white rounded-t-4xl shadow-2xl animate-slide-up h-[60%] flex flex-col overflow-hidden border-t border-card-border">
             <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
