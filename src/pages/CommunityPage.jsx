@@ -343,16 +343,15 @@ function CommunityPage() {
     }
   }, [currentUser])
 
-  const toggleJoinEvent = (event) => {
+  const toggleJoinEvent = async (event) => {
     const idStr = event.id.toString()
     if (localJoinedIds.includes(idStr)) {
       setLocalJoinedIds(localJoinedIds.filter(id => id !== idStr))
+      if (leaveEvent) await leaveEvent(event.id)
     } else {
       setLocalJoinedIds([...localJoinedIds, idStr])
-      if (addPoints) {
-        addPoints(20) // dynamic points update for wallet feedback!
-      }
-      createGroupFromEvent(event) // Automatically ensure a separate, dedicated chat room is created!
+      if (joinEvent) await joinEvent(event)
+      createGroupFromEvent(event)
     }
   }
 
@@ -1026,8 +1025,7 @@ function CommunityPage() {
 
             {/* Fixed footer action buttons */}
             <div 
-              className="p-5 pt-3 border-t border-gray-100 bg-white flex-shrink-0"
-              style={{ paddingBottom: 'calc(6rem + 5vh)' }}
+              className="p-5 pt-3 border-t border-gray-100 bg-white flex-shrink-0 pb-20"
             >
               {(() => {
                 const isJoined = canCreateGroup(selectedEvent)
@@ -1043,13 +1041,11 @@ function CommunityPage() {
                       </div>
 
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const idStr = selectedEvent.id.toString()
                           if (!localJoinedIds.includes(idStr)) {
                             setLocalJoinedIds([...localJoinedIds, idStr])
-                            if (addPoints) {
-                              addPoints(20)
-                            }
+                            if (joinEvent) await joinEvent(selectedEvent)
                           }
                           createGroupFromEvent(selectedEvent)
                           setSelectedEvent(null)
@@ -1073,6 +1069,40 @@ function CommunityPage() {
 
                 return (
                   <div className="space-y-2">
+                    {/* QR code for attendance - shown when joined */}
+                    {isJoined && (
+                      <div className="flex items-center gap-3 p-2.5 bg-soft-bg rounded-xl border border-card-border">
+                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-card-border flex-shrink-0">
+                          <svg viewBox="0 0 100 100" className="w-9 h-9">
+                            <rect x="5" y="5" width="25" height="25" fill="#1B4332" rx="3"/>
+                            <rect x="70" y="5" width="25" height="25" fill="#1B4332" rx="3"/>
+                            <rect x="5" y="70" width="25" height="25" fill="#1B4332" rx="3"/>
+                            <rect x="10" y="10" width="15" height="15" fill="white" rx="2"/>
+                            <rect x="75" y="10" width="15" height="15" fill="white" rx="2"/>
+                            <rect x="10" y="75" width="15" height="15" fill="white" rx="2"/>
+                            <rect x="13" y="13" width="9" height="9" fill="#1B4332" rx="1"/>
+                            <rect x="78" y="13" width="9" height="9" fill="#1B4332" rx="1"/>
+                            <rect x="13" y="78" width="9" height="9" fill="#1B4332" rx="1"/>
+                            <rect x="35" y="5" width="5" height="5" fill="#1B4332"/>
+                            <rect x="45" y="15" width="5" height="5" fill="#1B4332"/>
+                            <rect x="55" y="10" width="5" height="5" fill="#1B4332"/>
+                            <rect x="40" y="35" width="5" height="5" fill="#1B4332"/>
+                            <rect x="50" y="45" width="5" height="5" fill="#1B4332"/>
+                            <rect x="60" y="35" width="5" height="5" fill="#1B4332"/>
+                            <rect x="70" y="70" width="5" height="5" fill="#1B4332"/>
+                            <rect x="80" y="80" width="5" height="5" fill="#1B4332"/>
+                            <rect x="90" y="75" width="5" height="5" fill="#1B4332"/>
+                            <rect x="50" y="70" width="5" height="5" fill="#1B4332"/>
+                            <rect x="60" y="80" width="5" height="5" fill="#1B4332"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-forest">Kod uczestnictwa</p>
+                          <p className="text-[9px] text-graphite-light">Pokaż organizatorowi przy wejściu</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex gap-2">
                       {selectedEvent.latitude && selectedEvent.longitude && (
                         <button
@@ -1093,28 +1123,6 @@ function CommunityPage() {
                         {isJoined ? <><X size={14} /> Zrezygnuj</> : <><Check size={14} /> Zapisz się</>}
                       </button>
                     </div>
-
-                    {/* Create/join group - only if participated */}
-                    {isJoined && (
-                      <button
-                        onClick={() => {
-                          createGroupFromEvent(selectedEvent)
-                          setSelectedEvent(null)
-                          setTimeout(() => {
-                            const grp = getGroupForEvent(selectedEvent.id)
-                            if (grp) {
-                              setSelectedGroup(grp.id)
-                              setTab('groups')
-                            } else {
-                              setTab('groups')
-                            }
-                          }, 50)
-                        }}
-                        className="w-full py-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 bg-forest/10 text-forest border border-forest/20 active:scale-[0.97] transition-transform"
-                      >
-                        <MessageSquare size={14} /> Otwórz czat społeczności
-                      </button>
-                    )}
                   </div>
                 )
               })()}
