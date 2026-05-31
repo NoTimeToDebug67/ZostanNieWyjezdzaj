@@ -7,9 +7,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  html, body, #root {
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
   body {
     @apply font-sans text-graphite bg-white antialiased;
-    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
