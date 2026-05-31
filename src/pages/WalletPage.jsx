@@ -148,7 +148,28 @@ function WalletPage() {
       {rewardTab === 'mine' && (
         <section className="space-y-2">
           {rewards.length > 0 ? rewards.map((reward) => {
-            const isExpiringSoon = (reward.validUntil.getTime() - Date.now()) < 5 * 24 * 60 * 60 * 1000
+            const timeLeftMs = reward.validUntil.getTime() - Date.now()
+            const isExpiringSoon = timeLeftMs < 5 * 24 * 60 * 60 * 1000
+
+            // Format expiry text and class dynamically
+            let expiryText = `Ważne do: ${reward.validUntil.toLocaleDateString('pl-PL')}`
+            let expiryClass = 'text-gray-400'
+
+            if (timeLeftMs > 0) {
+              if (timeLeftMs < 24 * 60 * 60 * 1000) {
+                // Expiring in less than 24h
+                const hours = Math.floor(timeLeftMs / (1000 * 60 * 60))
+                const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60))
+                expiryText = `Kończy się za: ${hours}h ${minutes}m!`
+                expiryClass = 'text-red-500 font-bold animate-pulse'
+              } else if (isExpiringSoon) {
+                expiryClass = 'text-amber-600 font-semibold'
+              }
+            } else {
+              expiryText = 'Wygasła'
+              expiryClass = 'text-red-600 font-bold line-through'
+            }
+
             return (
               <button
                 key={reward.id}
@@ -161,8 +182,8 @@ function WalletPage() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[12px] font-semibold text-graphite">{reward.title}</h3>
                   <p className="text-[10px] text-graphite-light">{reward.description}</p>
-                  <p className={`text-[9px] font-medium mt-0.5 ${isExpiringSoon ? 'text-red-500' : 'text-gray-400'}`}>
-                    Ważne do: {reward.validUntil.toLocaleDateString('pl-PL')}
+                  <p className={`text-[9px] mt-0.5 ${expiryClass}`}>
+                    {expiryText}
                   </p>
                 </div>
                 <span className="text-sm font-bold text-forest">{reward.discount}</span>

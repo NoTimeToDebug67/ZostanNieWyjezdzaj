@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const SOLECTWA = ['Tymbark', 'Podłopień', 'Zawadka', 'Piekiełko', 'Zamieście'];
 
 function LoginPage() {
-  const { login, register } = useAuth();
+  const { login, register, loginAsGuest } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,6 +46,15 @@ function LoginPage() {
       if (!result.success) {
         setError(result.error);
       }
+    }, 800);
+  };
+
+  const handleGuestLogin = () => {
+    setLoading(true);
+    setError('');
+    setTimeout(() => {
+      loginAsGuest();
+      setLoading(false);
     }, 800);
   };
 
@@ -191,18 +200,24 @@ function LoginPage() {
                 </>
               )}
             </button>
+
+            {/* Guest Login Button */}
+            {isLogin && (
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                disabled={loading}
+                className="w-full py-3.5 mt-2 bg-transparent hover:bg-forest/5 text-forest border border-forest/30 font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                <span>Uruchom jako Gość</span>
+              </button>
+            )}
           </form>
 
-          {/* Quick instructions (Login page help) */}
+          {/* Instructions */}
           <div className="mt-6 pt-5 border-t border-card-border text-center">
-            <p className="text-[10px] text-graphite-light">
-              {isLogin ? (
-                <>
-                  Szybkie testowanie: <span className="font-bold text-forest select-all">ania@tymbark.pl</span> hasło: <span className="font-bold text-forest select-all">haslo123</span>
-                </>
-              ) : (
-                'Zakładając konto zyskujesz dostęp do lokalnego portfela punktów i mapy.'
-              )}
+            <p className="text-[10px] text-graphite-light font-medium">
+              Zaloguj się na swoje konto lub wejdź jako gość, aby przetestować aplikację.
             </p>
           </div>
         </div>

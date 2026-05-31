@@ -399,11 +399,77 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
   };
 
+  // 3b. Login as Guest
+  const loginAsGuest = () => {
+    const guestUser = {
+      id: `guest-${Math.random().toString(36).substring(2, 11)}`,
+      name: 'Gość',
+      email: 'gosc@tymbark.pl',
+      village: 'Tymbark',
+      points: 300,
+      nextRewardThreshold: 500,
+      isGuest: true,
+      stats: {
+        reports: 2,
+        initiatives: 1,
+        votes: 4,
+      },
+      joinedEvents: [
+        {
+          id: 'past-1',
+          title: 'Warsztaty Pieczenia Chleba KGW',
+          date: new Date('2026-06-12T10:00:00').toISOString(),
+          location: 'Świetlica Wiejska, Piekiełko'
+        },
+        {
+          id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+          title: 'Sąsiedzkie Repair Cafe w remizie',
+          date: new Date('2026-06-15T15:00:00').toISOString(),
+          location: 'Remiza OSP Tymbark'
+        }
+      ],
+      rewards: [
+        {
+          id: 'gr-1',
+          title: 'Kino Małopolska',
+          discount: '-30%',
+          description: 'Na dowolny seans filmowy',
+          validUntil: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours from now
+          emoji: '🎬',
+          code: 'GUEST-KINO-30'
+        },
+        {
+          id: 'gr-2',
+          title: 'Basen Termalny',
+          discount: '-25%',
+          description: 'Wejście całodniowe dla rodziny',
+          validUntil: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+          emoji: '🏊',
+          code: 'GUEST-TERM-25'
+        },
+        {
+          id: 'gr-3',
+          title: 'Piekarnia u Kasi',
+          discount: '-15%',
+          description: 'Na świeże wypieki i ciastka',
+          validUntil: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+          emoji: '🥐',
+          code: 'GUEST-KAS-15'
+        }
+      ],
+      recentBadge: null
+    };
+
+    setCurrentUser(guestUser);
+    localStorage.setItem('tymbark_session', JSON.stringify(guestUser));
+    return { success: true };
+  };
+
   // 4. Add Points
   const addPoints = async (amount, activityType = '') => {
     if (!currentUser) return;
 
-    if (!isSupabaseActive) {
+    if (!isSupabaseActive || currentUser.isGuest) {
       // Mock add points
       const updatedUser = {
         ...currentUser,
@@ -472,7 +538,7 @@ export function AuthProvider({ children }) {
         ? parsePolishDate(rawDate) 
         : new Date(rawDate || Date.now()));
 
-    if (!isSupabaseActive) {
+    if (!isSupabaseActive || currentUser.isGuest) {
       // Mock join event
       const updatedUser = {
         ...currentUser,
@@ -570,7 +636,7 @@ export function AuthProvider({ children }) {
     const alreadyJoined = currentUser.joinedEvents.some(e => e.id.toString() === eventId.toString());
     if (!alreadyJoined) return;
 
-    if (!isSupabaseActive) {
+    if (!isSupabaseActive || currentUser.isGuest) {
       // Mock leave event
       const updatedUser = {
         ...currentUser,
@@ -668,7 +734,7 @@ export function AuthProvider({ children }) {
 
     const newPoints = currentUser.points - rewardData.price;
 
-    if (!isSupabaseActive) {
+    if (!isSupabaseActive || currentUser.isGuest) {
       // Mock redeem
       const updatedUser = {
         ...currentUser,
@@ -712,7 +778,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, leaveEvent, redeemReward, isSupabaseActive, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, register, logout, addPoints, joinEvent, leaveEvent, redeemReward, loginAsGuest, isSupabaseActive, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
