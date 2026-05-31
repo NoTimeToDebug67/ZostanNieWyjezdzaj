@@ -4,10 +4,11 @@ import { IonPage, IonContent } from '@ionic/react'
 import { useAuth } from '../context/AuthContext'
 
 const availableRewards = [
-  { id: 'buy-1', title: 'Kino Małopolska', discount: '-30%', description: 'Na dowolny seans', price: 80, emoji: '🎬', code: 'TYM-KINO-2026' },
-  { id: 'buy-2', title: 'Basen Termalny', discount: '-25%', description: 'Wejście całodniowe', price: 120, emoji: '🏊', code: 'TYM-BASN-2026' },
-  { id: 'buy-3', title: 'Kwiaciarnia Flora', discount: '-20%', description: 'Na bukiety i doniczki', price: 60, emoji: '💐', code: 'TYM-FLOR-2027' },
-  { id: 'buy-4', title: 'Warsztat rowerowy', discount: '-15%', description: 'Na przegląd i naprawy', price: 50, emoji: '🚲', code: 'TYM-ROWER-2027' },
+  { id: 'buy-1', title: 'Soki z Tymbarku', discount: '-25%', description: 'Na zgrzewkę soków tłoczonych', price: 35, emoji: '🧃', code: 'TYM-SOK-2027' },
+  { id: 'buy-2', title: 'Pizzeria Rynek', discount: '-20%', description: 'Na całe menu w lokalu', price: 50, emoji: '🍕', code: 'TYM-PIZZ-2027' },
+  { id: 'buy-3', title: 'Kawiarnia pod Dębem', discount: 'Darmowa kawa', description: 'Przy zakupie dowolnego ciastka', price: 40, emoji: '☕', code: 'TYM-KAWA-2026' },
+  { id: 'buy-4', title: 'Wypożyczalnia E-Bike', discount: '-40%', description: 'Na wypożyczenie roweru elektrycznego', price: 100, emoji: '🚴', code: 'TYM-EBIK-2026' },
+  { id: 'buy-5', title: 'Siłownia Active', discount: '-30%', description: 'Na dowolny karnet miesięczny', price: 80, emoji: '🏋️', code: 'TYM-GYM-2026' },
 ]
 
 function WalletPage() {

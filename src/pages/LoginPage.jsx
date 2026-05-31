@@ -76,8 +76,12 @@ function LoginPage() {
       <div className="relative z-10 w-full max-w-md mx-auto">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#86efac] to-[#22c55e] flex items-center justify-center mx-auto mb-3.5 shadow-xl border border-white/20 animate-pulse-soft">
-            <span className="text-[#14532d] text-2xl font-black tracking-tight">T</span>
+          <div className="w-20 h-20 rounded-[24px] bg-white/10 backdrop-blur-xl flex items-center justify-center mx-auto mb-4 shadow-2xl border border-white/20 animate-pulse-soft">
+            <img
+              src={`${import.meta.env.BASE_URL}logo_tuDzialam.png`}
+              alt="Logo Tu Działam"
+              className="w-14 h-14 rounded-xl object-contain"
+            />
           </div>
           <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-[#e2fbf0] to-[#86efac] tracking-tight leading-none drop-shadow-[0_2px_8px_rgba(20,83,45,0.4)]">
             Tu Działam
@@ -88,7 +92,7 @@ function LoginPage() {
         </div>
 
         {/* Card Container */}
-        <div className="bg-emerald-950/45 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/10 transition-all duration-300 text-white">
+        <div className="bg-emerald-950/55 backdrop-blur-2xl rounded-[32px] p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/15 transition-all duration-300 text-white">
           {/* Tab Selector */}
           <div className="flex bg-emerald-900/40 rounded-2xl p-1 mb-6 border border-white/5">
             <button
