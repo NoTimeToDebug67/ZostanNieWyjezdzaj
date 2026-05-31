@@ -165,10 +165,10 @@ function CommunityPage() {
         const parsed = JSON.parse(stored).filter(e => e.type === 'event')
         const hasPast1 = parsed.some(e => e.id.toString() === 'past-1')
         const hasRepairCafe = parsed.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-        
+
         const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
         const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-        
+
         const merged = [...parsed]
         if (!hasPast1 && staticPast1) merged.push(staticPast1)
         if (!hasRepairCafe && staticRepairCafe) {
@@ -195,7 +195,12 @@ function CommunityPage() {
   const [calYear, setCalYear] = useState(2026)
   const [selectedDay, setSelectedDay] = useState(null)
   // 100% local frontend mock of joined events - past events (12th and 15th June) joined by default for demo!
-  const [localJoinedIds, setLocalJoinedIds] = useState(['a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'past-1'])
+  const [localJoinedIds, setLocalJoinedIds] = useState(() => {
+    if (currentUser?.joinedEvents) {
+      return currentUser.joinedEvents.map(e => e.id.toString())
+    }
+    return ['a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', 'past-1']
+  })
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEvent, setNewEvent] = useState({ title: '', category: 'lokalne', location: '', date: '', time: '', description: '' })
 
@@ -266,10 +271,10 @@ function CommunityPage() {
         const merged = data || []
         const hasPast1 = merged.some(e => e.id.toString() === 'past-1')
         const hasRepairCafe = merged.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-        
+
         const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
         const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-        
+
         if (!hasPast1 && staticPast1) merged.push(staticPast1)
         if (!hasRepairCafe && staticRepairCafe) {
           const updatedRepair = { ...staticRepairCafe, category: 'warsztaty' }
@@ -283,10 +288,10 @@ function CommunityPage() {
             const parsed = JSON.parse(stored).filter(e => e.type === 'event')
             const hasPast1 = parsed.some(e => e.id.toString() === 'past-1')
             const hasRepairCafe = parsed.some(e => e.id.toString() === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-            
+
             const staticPast1 = mockEventsStatic.find(e => e.id === 'past-1')
             const staticRepairCafe = mockEventsStatic.find(e => e.id === 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d')
-            
+
             let merged = [...parsed]
             let updated = false
             if (!hasPast1 && staticPast1) {
@@ -329,7 +334,13 @@ function CommunityPage() {
     localStorage.setItem('tymbark_groups', JSON.stringify(updated))
   }
 
-  useEffect(() => { fetchEvents(); loadGroups() }, [currentUser])
+  useEffect(() => { 
+    fetchEvents()
+    loadGroups() 
+    if (currentUser?.joinedEvents) {
+      setLocalJoinedIds(currentUser.joinedEvents.map(e => e.id.toString()))
+    }
+  }, [currentUser])
 
   const toggleJoinEvent = (event) => {
     const idStr = event.id.toString()
@@ -406,20 +417,20 @@ function CommunityPage() {
     if (!chatMessage.trim()) return
     const activeUserName = currentUser?.name || 'Ania'
     const userMsg = chatMessage.trim()
-    
+
     // Add user's message
     const updated = groups.map(g => {
       if (g.id === groupId) {
-        return { 
-          ...g, 
+        return {
+          ...g,
           messages: [
-            ...g.messages, 
-            { 
-              from: activeUserName, 
-              text: userMsg, 
-              time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' }) 
+            ...g.messages,
+            {
+              from: activeUserName,
+              text: userMsg,
+              time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' })
             }
-          ] 
+          ]
         }
       }
       return g
@@ -437,10 +448,10 @@ function CommunityPage() {
         "Jasne! Dajcie znać, kiedy planujemy kolejne spotkanie, chętnie pomogę w organizacji.",
         "Fajnie, że tak prężnie działamy jako sąsiedzi! Pozdrowienia dla wszystkich 😊"
       ]
-      
+
       const randomBot = bots[Math.floor(Math.random() * bots.length)]
       const randomReply = botReplies[Math.floor(Math.random() * botReplies.length)]
-      
+
       setGroups(prevGroups => {
         const updatedWithBot = prevGroups.map(g => {
           if (g.id === groupId) {
@@ -486,18 +497,18 @@ function CommunityPage() {
         if (info.recurringType === 'weekly') {
           const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
           return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
-                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
-                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
-                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
-                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
-                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
-                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
-                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+            (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+            (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+            (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+            (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+            (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+            (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+            (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
         }
       } else {
         return info.day === day &&
-               (info.month === null || info.month === calMonth) &&
-               (info.year === null || info.year === calYear)
+          (info.month === null || info.month === calMonth) &&
+          (info.year === null || info.year === calYear)
       }
       return false
     })
@@ -560,18 +571,18 @@ function CommunityPage() {
         if (info.recurringType === 'weekly') {
           const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
           return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
-                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
-                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
-                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
-                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
-                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
-                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
-                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+            (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+            (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+            (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+            (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+            (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+            (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+            (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
         }
       } else {
         return info.day === day &&
-               (info.month === null || info.month === month) &&
-               (info.year === null || info.year === year)
+          (info.month === null || info.month === month) &&
+          (info.year === null || info.year === year)
       }
       return false
     }).length
@@ -613,18 +624,18 @@ function CommunityPage() {
         if (info.recurringType === 'weekly') {
           const eventDayOfWeek = (info.dayOfWeek || '').toLowerCase()
           return eventDayOfWeek === currentDayOfWeekName.toLowerCase() ||
-                 (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
-                 (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
-                 (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
-                 (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
-                 (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
-                 (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
-                 (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
+            (eventDayOfWeek === 'sobota' && dayOfWeekIdx === 6) ||
+            (eventDayOfWeek === 'niedziela' && dayOfWeekIdx === 0) ||
+            (eventDayOfWeek === 'czwartek' && dayOfWeekIdx === 4) ||
+            (eventDayOfWeek === 'piątek' && dayOfWeekIdx === 5) ||
+            (eventDayOfWeek === 'wtorek' && dayOfWeekIdx === 2) ||
+            (eventDayOfWeek === 'środa' && dayOfWeekIdx === 3) ||
+            (eventDayOfWeek === 'poniedziałek' && dayOfWeekIdx === 1)
         }
       } else {
         return info.day === selectedDay &&
-               (info.month === null || info.month === calMonth) &&
-               (info.year === null || info.year === calYear)
+          (info.month === null || info.month === calMonth) &&
+          (info.year === null || info.year === calYear)
       }
     } else {
       // 4. Month-wide filter
@@ -632,7 +643,7 @@ function CommunityPage() {
         return true
       } else {
         return (info.month === null || info.month === calMonth) &&
-               (info.year === null || info.year === calYear)
+          (info.year === null || info.year === calYear)
       }
     }
     return false
@@ -686,11 +697,10 @@ function CommunityPage() {
           ) : (
             group.messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.from === activeUserName ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-[11px] ${
-                  msg.from === activeUserName
+                <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-[11px] ${msg.from === activeUserName
                     ? 'bg-forest text-white rounded-br-md'
                     : 'bg-white text-graphite border border-card-border rounded-bl-md'
-                }`}>
+                  }`}>
                   {msg.from !== activeUserName && (
                     <p className="text-[9px] font-bold text-forest mb-0.5">{msg.from}</p>
                   )}
@@ -749,9 +759,8 @@ function CommunityPage() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`relative z-10 flex-1 py-2 rounded-lg text-[11px] font-semibold transition-colors duration-300 ${
-              tab === t.id ? 'text-white font-bold' : 'text-graphite-light hover:text-graphite'
-            }`}
+            className={`relative z-10 flex-1 py-2 rounded-lg text-[11px] font-semibold transition-colors duration-300 ${tab === t.id ? 'text-white font-bold' : 'text-graphite-light hover:text-graphite'
+              }`}
           >
             {t.label}
           </button>
@@ -782,17 +791,15 @@ function CommunityPage() {
             />
             <button
               onClick={() => { setSelectedDay(null); setEventScope('all'); }}
-              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 ${
-                eventScope === 'all' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
-              }`}
+              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 ${eventScope === 'all' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
+                }`}
             >
               Wszystkie
             </button>
             <button
               onClick={() => { setSelectedDay(null); setEventScope('joined'); }}
-              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 flex items-center justify-center gap-1.5 ${
-                eventScope === 'joined' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
-              }`}
+              className={`relative z-10 flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors duration-300 flex items-center justify-center gap-1.5 ${eventScope === 'joined' ? 'text-forest' : 'text-graphite-light hover:text-graphite'
+                }`}
             >
               <Check size={11} className={eventScope === 'joined' ? 'text-forest' : 'text-graphite-light'} />
               Moje ({localJoinedIds.length})
@@ -1011,7 +1018,10 @@ function CommunityPage() {
             </div>
 
             {/* Fixed footer action buttons */}
-            <div className="p-5 pt-3 pb-24 border-t border-gray-100 bg-white flex-shrink-0">
+            <div 
+              className="p-5 pt-3 border-t border-gray-100 bg-white flex-shrink-0"
+              style={{ paddingBottom: 'calc(6rem + 5vh)' }}
+            >
               {(() => {
                 const isJoined = canCreateGroup(selectedEvent)
                 const existingGroup = getGroupForEvent(selectedEvent.id)
@@ -1036,7 +1046,7 @@ function CommunityPage() {
                           }
                           createGroupFromEvent(selectedEvent)
                           setSelectedEvent(null)
-                          
+
                           // Wait briefly and open the newly created group chat
                           setTimeout(() => {
                             const group = getGroupForEvent(selectedEvent.id)
@@ -1080,9 +1090,9 @@ function CommunityPage() {
                     {/* Create/join group - only if participated */}
                     {isJoined && (
                       <button
-                        onClick={() => { 
+                        onClick={() => {
                           createGroupFromEvent(selectedEvent)
-                          setSelectedEvent(null) 
+                          setSelectedEvent(null)
                           setTimeout(() => {
                             const grp = getGroupForEvent(selectedEvent.id)
                             if (grp) {
