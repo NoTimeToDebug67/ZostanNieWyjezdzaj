@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { QrCode, Trophy, Gift, X, Info, ShoppingBag, Tag } from 'lucide-react'
+import { IonPage, IonContent } from '@ionic/react'
 import { useAuth } from '../context/AuthContext'
 
 const availableRewards = [
@@ -44,7 +45,9 @@ function WalletPage() {
   }
 
   return (
-    <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
+    <IonPage>
+      <IonContent scrollY={true} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div className="px-4 space-y-4 pb-28 pt-2">
       {/* Header */}
       <div className="py-1">
         <h1 className="text-lg font-bold text-graphite">Nagrody</h1>
@@ -310,7 +313,9 @@ function WalletPage() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   )
 }
 

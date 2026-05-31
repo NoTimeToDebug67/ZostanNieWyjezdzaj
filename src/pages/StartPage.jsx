@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { User, Clock, ArrowRight, ChevronLeft, ChevronRight, AlertCircle, MapPin } from 'lucide-react'
+import { IonPage, IonContent } from '@ionic/react'
 import AIOrb from '../components/AIOrb'
 import { useAuth } from '../context/AuthContext'
 import { getAssistantSuggestion } from '../utils/assistantEngine'
@@ -75,7 +76,9 @@ function StartPage({ onNavigate }) {
   }
 
   return (
-    <div className="px-4 space-y-4 flex-1 overflow-y-auto pb-28 pt-2">
+    <IonPage>
+      <IonContent scrollY={true} className="ion-no-padding" style={{ '--background': 'transparent' }}>
+        <div className="px-4 space-y-4 pb-28 pt-2">
       {/* Top bar - compact, phone-like */}
       <div className="flex items-center justify-between py-1">
         <div>
@@ -222,7 +225,9 @@ function StartPage({ onNavigate }) {
         </div>
       </section>
 
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   )
 }
 
